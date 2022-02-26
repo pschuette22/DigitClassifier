@@ -1,0 +1,8 @@
+# Mac OS files
+.DS_Store
+
+# Avoid storing large files 
+output/
+fonts/*.zip
+dataset/**.png
+dataset/**.jpg
