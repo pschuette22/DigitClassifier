@@ -4,5 +4,4 @@
 # Avoid storing large files 
 output/
 fonts/*.zip
-dataset/**.png
-dataset/**.jpg
+dataset/**
