@@ -66,6 +66,9 @@ for font_zip in ${fonts_dir}/*.zip; do
                         label:"$digit" \
                         ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg
 
+                # Uncomment to add a border around training data
+                # Could be useful for classifying sudoku cells with images
+                #
                 # convert ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg \
                 #         -borderColor black \
                 #         -border 8 \
@@ -95,6 +98,7 @@ for font_zip in ${fonts_dir}/*.zip; do
 
             entries=$((entries+1))
 
+            # Uncomment to stop program from overfitting a particularly robust font style
             # if [ $entries -ge $font_max ]; then break 2; fi
         done
     done
