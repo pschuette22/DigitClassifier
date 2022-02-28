@@ -1,5 +1,8 @@
 #!/bin/bash
 
+start_digit=$1
+end_digit=$2
+
 working_dir=$(pwd)
 output=${working_dir}/dataset
 fonts_dir=${working_dir}/fonts
@@ -14,9 +17,9 @@ test_split=2
 total_split=$((train_split + valid_split + test_split))
 
 
-background_colors=("white" "white" "white" "snow1" "snow2" "snow3" "LightPink3" "LavenderBlush1" "LightSlateBlue" "LightSkyBlue1")
+background_colors=("white" "white" "white" "snow1" "snow2" "snow3" "LightSkyBlue1")
 
-for digit in $(seq 0 9); do
+for digit in $(seq "$start_digit" "$end_digit"); do
     mkdir -p ${output}/train/${digit}
     mkdir -p ${output}/valid/${digit}
     mkdir -p ${output}/test/${digit}
@@ -37,7 +40,6 @@ for font_zip in ${fonts_dir}/*.zip; do
             font_name="$(basename -s .$ext $font)"
 
             # Transformations
-            background=${background_colors[ $RANDOM % ${#background_colors[@]} ]}
             fill="black"
 
             split_index=$((entries % total_split))
@@ -53,6 +55,8 @@ for font_zip in ${fonts_dir}/*.zip; do
 
             for digit in $(seq 0 9); do
 
+                background=${background_colors[ $RANDOM % ${#background_colors[@]} ]}
+
                 convert -background $background \
                         -fill $fill \
                         -font $font \
@@ -62,20 +66,31 @@ for font_zip in ${fonts_dir}/*.zip; do
                         label:"$digit" \
                         ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg
 
-                convert ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg \
-                        -borderColor black \
-                        -border 8 \
-                        ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg
+                # convert ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg \
+                #         -borderColor black \
+                #         -border 8 \
+                #         ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg
 
-                if [[ $(( entries % 2 )) == 0 ]];
-                then
-                    rotation=$(jot -r 1 -30 30)
 
+                for i in $(seq 1 5); do
+                  
+                    lower=$((i*5))
+                    upper=$((i* 5 + 4))
+                    rotation=$(jot -r 1 "$lower" "$upper")
+                    echo "Rotation $rotation"
+    
                     convert ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg \
                         -background $background \
                         -rotate $rotation \
                         ${output}/${font_split}/${digit}/${digit}_${font_name}_rotated${rotation}.jpg
-                fi
+                    
+                    reversed=$((-1 * rotation))
+                    convert ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg \
+                        -background $background \
+                        -rotate $reversed \
+                        ${output}/${font_split}/${digit}/${digit}_${font_name}_rotated${rotation}.jpg
+
+                done
             done
 
             entries=$((entries+1))
