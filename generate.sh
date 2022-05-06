@@ -11,9 +11,9 @@ mkdir $output
 extensions=("ttf" "otf")
 font_max=100
 
-train_split=7
+train_split=5
 valid_split=1
-test_split=2
+test_split=1
 total_split=$((train_split + valid_split + test_split))
 
 
@@ -40,7 +40,7 @@ for font_zip in ${fonts_dir}/*.zip; do
             font_name="$(basename -s .$ext $font)"
 
             # Transformations
-            fill="black"
+            fill="white"
 
             split_index=$((entries % total_split))
             if [ "$split_index" -ge 0 ] && [ "$split_index" -lt "$train_split" ]
@@ -53,18 +53,18 @@ for font_zip in ${fonts_dir}/*.zip; do
                 font_split="test"
             fi
 
-            for digit in $(seq 0 9); do
+            for digit in $(seq "$start_digit" "$end_digit"); do
 
-                background=${background_colors[ $RANDOM % ${#background_colors[@]} ]}
+                background="black" # ${background_colors[ $RANDOM % ${#background_colors[@]} ]}
 
                 convert -background $background \
                         -fill $fill \
                         -font $font \
-                        -pointsize 300 \
-                        -extent 416x416 \
+                        -pointsize 24 \
+                        -extent 28x28 \
                         -gravity center \
                         label:"$digit" \
-                        ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg
+                        ${output}/${font_split}/${digit}/${digit}_${font_name}_original.jpg
 
                 # Uncomment to add a border around training data
                 # Could be useful for classifying sudoku cells with images
@@ -75,25 +75,35 @@ for font_zip in ${fonts_dir}/*.zip; do
                 #         ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg
 
 
-                for i in $(seq 1 5); do
-                  
-                    lower=$((i*5))
-                    upper=$((i* 5 + 4))
-                    rotation=$(jot -r 1 "$lower" "$upper")
-                    echo "Rotation $rotation"
-    
-                    convert ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg \
-                        -background $background \
-                        -rotate $rotation \
-                        ${output}/${font_split}/${digit}/${digit}_${font_name}_rotated${rotation}.jpg
-                    
-                    reversed=$((-1 * rotation))
-                    convert ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg \
-                        -background $background \
-                        -rotate $reversed \
-                        ${output}/${font_split}/${digit}/${digit}_${font_name}_rotated${rotation}.jpg
-
-                done
+#                for i in $(seq 1 3); do
+#                  
+#                    lower=$((i*10))
+#                    upper=$((i* 10 + 9))
+#                    rotation=$(jot -r 1 "$lower" "$upper")
+#                    echo "Rotation $rotation"
+#    
+#                    convert ${output}/${font_split}/${digit}/${digit}_${font_name}_original.jpg \
+#                        -background $background \
+#                        -rotate $rotation \
+#			-gravity center \
+#                        -extent 28x28 \
+#                        ${output}/${font_split}/${digit}/${digit}_${font_name}_rotated${rotation}.jpg
+#                    
+#                    reversed=$((-1 * rotation))
+#                    convert ${output}/${font_split}/${digit}/${digit}_${font_name}_original.jpg \
+#                        -background $background \
+#                        -rotate $reversed \
+#                        -gravity center \
+#			-extent 28x28 \
+#                        ${output}/${font_split}/${digit}/${digit}_${font_name}_rotated${reversed}.jpg
+#
+#                done
+                # Make it pixelated
+		
+                # for image in ${output}/${font_split}/${digit}/${digit}_${font_name}*.jpg; do
+		        #     pixelation="0.0$(jot -r 1 25 100)"
+		        #     $(git rev-parse --show-toplevel)/pixelate.sh ${pixelation} ${image} ${image}
+		        # done
             done
 
             entries=$((entries+1))
