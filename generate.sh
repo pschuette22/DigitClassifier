@@ -20,9 +20,10 @@ total_split=$((train_split + valid_split + test_split))
 background_colors=("white" "white" "white" "snow1" "snow2" "snow3" "LightSkyBlue1")
 
 for digit in $(seq "$start_digit" "$end_digit"); do
-    mkdir -p ${output}/train/${digit}
-    mkdir -p ${output}/valid/${digit}
-    mkdir -p ${output}/test/${digit}
+    # mkdir -p ${output}/train/${digit}
+    # mkdir -p ${output}/valid/${digit}
+    # mkdir -p ${output}/test/${digit}
+    mkdir -p ${output}/${digit}
 done
 
 total_fonts=0
@@ -34,46 +35,42 @@ for font_zip in ${fonts_dir}/*.zip; do
     total_fonts=$((total_fonts+1))
     
     for ext in "${extensions[@]}"; do
-        for font in ${fonts_dir}/${font_family}/**.${ext}; do
-            if [[ ! -f "$font" ]]; then continue; fi
+        find ${fonts_dir}/${font_family} -type f -not -path "*__MACOSX*" -name "*.${ext}" | while read font; do
+            if [[ ! -f "$font" ]]; then 
+                echo "No fonts found for family: $font_family with extension: $ext"
+                continue; 
+            fi
 
             font_name="$(basename -s .$ext $font)"
-
+            echo "Processing font: $font_name"
+            echo "Filepath: $font"
             # Transformations
             fill="white"
 
-            split_index=$((entries % total_split))
-            if [ "$split_index" -ge 0 ] && [ "$split_index" -lt "$train_split" ]
-            then 
-                font_split="train"
-            elif [ "$split_index" -ge "$train_split" ] &&  [ "$split_index" -lt $(( $train_split + $valid_split)) ]
-            then 
-                font_split="valid"
-            else
-                font_split="test"
-            fi
+            # split_index=$((entries % total_split))
+            # if [ "$split_index" -ge 0 ] && [ "$split_index" -lt "$train_split" ]
+            # then 
+            #     font_split="train"
+            # elif [ "$split_index" -ge "$train_split" ] &&  [ "$split_index" -lt $(( $train_split + $valid_split)) ]
+            # then 
+            #     font_split="valid"
+            # else
+            #     font_split="test"
+            # fi
 
             for digit in $(seq "$start_digit" "$end_digit"); do
 
                 background="black" # ${background_colors[ $RANDOM % ${#background_colors[@]} ]}
 
-                convert -background $background \
+                magick -background $background \
                         -fill $fill \
                         -font $font \
-                        -pointsize 24 \
-                        -extent 28x28 \
+                        -pointsize 18 \
+                        -size 28x28 \
                         -gravity center \
                         label:"$digit" \
-                        ${output}/${font_split}/${digit}/${digit}_${font_name}_original.jpg
-
-                # Uncomment to add a border around training data
-                # Could be useful for classifying sudoku cells with images
-                #
-                # convert ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg \
-                #         -borderColor black \
-                #         -border 8 \
-                #         ${output}/${font_split}/${digit}/${digit}_${font_name}.jpg
-
+                        ${output}/${digit}/${digit}_${font_name}_original.jpg
+                        # ${output}/${font_split}/${digit}/${digit}_${font_name}_original.jpg
 
 #                for i in $(seq 1 3); do
 #                  
@@ -98,12 +95,6 @@ for font_zip in ${fonts_dir}/*.zip; do
 #                        ${output}/${font_split}/${digit}/${digit}_${font_name}_rotated${reversed}.jpg
 #
 #                done
-                # Make it pixelated
-		
-                # for image in ${output}/${font_split}/${digit}/${digit}_${font_name}*.jpg; do
-		        #     pixelation="0.0$(jot -r 1 25 100)"
-		        #     $(git rev-parse --show-toplevel)/pixelate.sh ${pixelation} ${image} ${image}
-		        # done
             done
 
             entries=$((entries+1))
@@ -115,3 +106,6 @@ for font_zip in ${fonts_dir}/*.zip; do
 
     rm -rf ${fonts_dir}/${font_family}
 done
+
+echo "Total fonts: $total_fonts"
+echo "Total entries: $entries"

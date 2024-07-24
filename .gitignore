@@ -5,3 +5,7 @@
 output/
 fonts/*.zip
 dataset/**
+
+preview/
+product/
+samples/
