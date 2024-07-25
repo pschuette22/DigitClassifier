@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Fine tune the MNIST dataset to focus on computer fonts
 
 import os
@@ -18,11 +16,13 @@ def preprocess_image(image, target_size=(28, 28)):
 # Load the CoreML model
 model = ct.models.MLModel('MNISTClassifier.mlmodel')
 
-for digit in range(1,9):
+print('Processing dataset')
+for digit in range(1,10):
+    print(f'Processing {digit}')
     # Load the image
     digit_dir = 'dataset/' + str(digit)
     files = os.listdir(digit_dir)
-
+    print('Image directory: ' + digit_dir)
     # Filter out files to ensure they are images
     image_files = [file for file in files if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
 
