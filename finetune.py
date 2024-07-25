@@ -47,9 +47,9 @@ for digit in range(1,9):
         prediction = model.predict({'image': image_data})
 
         # Print the prediction
-        print(f'The digit is: {digit}')
-        print(f'The model predicted: {prediction["classLabel"]}')
-        print(f'The model\'s confidence: {prediction["classLabelProbs"][prediction["classLabel"]]}')
+        print('The digit is: ', digit)
+        print('The model predicted: ', {prediction["classLabel"]})
+        print('The model\'s confidence: ', {prediction["classLabelProbs"][prediction["classLabel"]]})
         print()
 
 # # Load and preprocess images
