@@ -10,13 +10,13 @@ def main(start_digit, end_digit):
 
     if os.path.exists(output_dir):
         os.system(f'rm -rf {output_dir}')
-    os.makedirs(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
 
     extensions = ["ttf", "otf"]
     font_max = 100
 
     for digit in range(int(start_digit), int(end_digit) + 1):
-        os.makedirs(os.path.join(output_dir, str(digit)))
+        os.makedirs(os.path.join(output_dir, str(digit)), exist_ok=True)
 
     total_fonts = 0
     entries = 0
