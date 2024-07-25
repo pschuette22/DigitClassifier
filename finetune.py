@@ -32,7 +32,7 @@ for digit in range(1,10):
         image_path = os.path.join(digit_dir, image_file)
         
         # Open and preprocess the image
-        image = Image.open(image_path)
+        image = Image.open(image_path).convert('L')
 
         # Convert the image to a numpy array
         image_data = np.array(image).astype(np.float32)
@@ -40,16 +40,19 @@ for digit in range(1,10):
         # Normalize the image
         image_data = image_data / 255
 
-        # Add a batch dimension
-        image_data = image_data[np.newaxis, :, :]
+        # # Add a batch dimension
+        # image_data = image_data[np.newaxis, :, :]
 
         # Make a prediction
-        prediction = model.predict({'image': image_data})
+        prediction = model.predict({'image': image})
 
         # Print the prediction
         print('The digit is: ', digit)
-        print('The model predicted: ', {prediction["classLabel"]})
-        print('The model\'s confidence: ', {prediction["classLabelProbs"][prediction["classLabel"]]})
+        print('The model predicted: ', prediction["classLabel"])
+        # print(repr(prediction))
+        print('The model\'s confidence: ', prediction["labelProbabilities"][prediction["classLabel"]])
+        if digit != prediction["classLabel"]:
+            print("Path: ", image_path)
         print()
 
 # # Load and preprocess images
