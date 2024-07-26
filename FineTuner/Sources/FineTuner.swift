@@ -11,22 +11,21 @@ import CoreML
 
 @main
 struct FineTuner: AsyncParsableCommand {
-    @Option(name: [.customShort("m")], help: "path to .coreml model")
-    var model: String
-    private var modelPath: URL? {
-        URL(string: model, relativeTo: .currentDirectory())
-    }
+    @Option(
+        name: [.customShort("m"), .customLong("model")],
+        help: "path to .coreml model",
+        transform: URL.init(fileURLWithPath:)
+    )
+    var modelPath: URL
     
-    @Option(help: "path to dataset")
-    var dataset: String
-    private var datasetPath: URL? {
-        URL(string: dataset, relativeTo: .currentDirectory())
-    }
+    @Option(
+        name: [.customShort("d"), .customLong("dataset")],
+        help: "path to dataset",
+        transform: URL.init(fileURLWithPath:)
+    )
+    var datasetPath: URL
     
     mutating func run() async throws {
-        guard let modelPath else { throw Error.missingModel }
-        guard let datasetPath else { throw Error.missingDataset }
-        
         let model = try await CoreML.MLModel.compileModel(at: modelPath)
 
         print("Tuning model: \(modelPath.absoluteString)")
