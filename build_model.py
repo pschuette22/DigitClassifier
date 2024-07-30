@@ -34,14 +34,14 @@ transform = transforms.Compose([transforms.ToTensor(),
                               transforms.Normalize((0.5,), (0.5,)),
                               ])
 
-trainset = datasets.MNIST('dataset/train', download=True, train=True, transform=transform)
-valset = datasets.MNIST('dataset/valid', download=True, train=False, transform=transform)
+trainset = datasets.MNIST('dataset/mnist/train', download=True, train=True, transform=transform)
+valset = datasets.MNIST('dataset/mnist/valid', download=True, train=False, transform=transform)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True)
 valloader = torch.utils.data.DataLoader(valset, batch_size=64, shuffle=True)
 
 
 dataiter = iter(trainloader)
-images, labels = dataiter.next()
+images, labels = next(dataiter)
 
 print(images.shape)
 print(labels.shape)
@@ -83,8 +83,11 @@ optimizer = optim.SGD(model.parameters(), lr=0.003, momentum=0.9)
 time0 = time()
 epochs = 15
 for e in range(epochs):
+    print("training epoch: ", e)
     running_loss = 0
+    batch_index=0
     for images, labels in trainloader:
+        print("training batch index: ", batch_index)
         # Flatten MNIST images into a 784 long vector
         images = images.view(images.shape[0], -1)
     
@@ -101,6 +104,7 @@ for e in range(epochs):
         optimizer.step()
         
         running_loss += loss.item()
+        batch_index+=1
     else:
         print("Epoch {} - Training loss: {}".format(e, running_loss/len(trainloader)))
 print("\nTraining Time (in minutes) =",(time()-time0)/60)
@@ -148,7 +152,12 @@ torch.save(model, './product/digit_classifier.pt')
 # Set the model in evaluation mode.
 
 tracable = model.eval()
-random = torch.rand(1, 784, 128)
+random = torch.rand(1, 784)
+print(" == Tracing params ==")
+print(tracable)
+print(" == Random params == ")
+print(random)
+print(random.shape)
 traced = torch.jit.trace(tracable, random)
 
 # Using image_input in the inputs parameter:
@@ -157,8 +166,10 @@ traced = torch.jit.trace(tracable, random)
 converted_model = ct.convert(
     traced,
     source="pytorch",
-    inputs=[ct.TensorType(shape=images.shape)]
+    inputs=[ct.TensorType(shape=(1, 784))],
+    convert_to="mlprogram"
+    # inputs=[ct.TensorType(shape=images.shape)]
 )
 
 #  # Save the converted model.
-converted_model.save("./product/digit_classifier.mlmodel")
+converted_model.save("product/MNISTClassifier.mlpackage")
