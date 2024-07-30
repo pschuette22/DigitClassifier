@@ -12,8 +12,8 @@ import XCTest
 final class FineTunerTests: XCTestCase {
     func testFineTuner() async throws {
         let workspace = FileManager.default.homeDirectoryForCurrentUser.appending(path: "Workspace")
-        let modelPath = workspace.appending(path: "DigitClassifier/MNISTClassifier.mlmodel")
-        let datasetPath = workspace.appending(path: "DigitClassifier/dataset/train")
+        let modelPath = workspace.appending(path: "DigitClassifier/product/UpdatableMNISTClassifier.mlpackage/Data/com.apple.CoreML/model.mlmodel")
+        let datasetPath = workspace.appending(path: "DigitClassifier/dataset/fonts/train")
         var command = try FineTuner.parse([
             "-m",
             modelPath.path(),

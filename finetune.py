@@ -14,7 +14,7 @@ def preprocess_image(image, target_size=(28, 28)):
 
 
 # Load the CoreML model
-model = ct.models.MLModel('MNISTClassifier.mlmodel')
+model = ct.models.MLModel('product/MNISTClassifier.mlpackage')
 
 print('Processing dataset')
 for digit in range(1,10):

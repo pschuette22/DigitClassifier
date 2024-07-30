@@ -4,11 +4,11 @@ import numpy as np
 import torch
 import torchvision
 import matplotlib.pyplot as plt
+import coremltools as ct
+
 from time import time
 from torchvision import datasets, transforms
 from torch import nn, optim
-import coremltools as ct
-# from onnx_coreml import convert
 
 
 def view_classify(img, ps):
@@ -171,5 +171,12 @@ converted_model = ct.convert(
     # inputs=[ct.TensorType(shape=images.shape)]
 )
 
-#  # Save the converted model.
+#
+# == Make the model updatable == 
+#
+
+converted_model.user_defined_metadata['com.apple.coreml.model.updatable'] = 'true'
+
+
+# Save the converted model.
 converted_model.save("product/MNISTClassifier.mlpackage")

@@ -27,6 +27,7 @@ struct FineTuner: AsyncParsableCommand {
     var datasetPath: URL
     
     mutating func run() async throws {
+        
         let compiledModelPath = try await CoreML.MLModel.compileModel(at: modelPath)
 
         print("Tuning model: \(modelPath.absoluteString)")
@@ -66,7 +67,7 @@ struct FineTuner: AsyncParsableCommand {
 //    }
     
     private func train(_ compiledModelPath: URL, from datasetPath: URL) async throws -> MLModel {
-        var compiledModel = try CoreML.MLModel(contentsOf: compiledModelPath)
+        let compiledModel = try CoreML.MLModel(contentsOf: compiledModelPath)
 
         let directories = try FileManager.default.contentsOfDirectory(atPath: datasetPath.path()).filter {
             var isDirectory: ObjCBool = false

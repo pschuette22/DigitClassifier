@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 def main(fonts_path, start_digit, end_digit):
     working_dir = os.getcwd()
-    output_dir = os.path.join(working_dir, 'dataset')
+    output_dir = os.path.join(working_dir, 'dataset/fonts')
     fonts_dir = os.path.join(fonts_path, 'ofl')
 
     if os.path.exists(output_dir):
