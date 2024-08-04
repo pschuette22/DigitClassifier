@@ -20,9 +20,9 @@ def create_keras_base_model(url):
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
     model.add(Flatten())
-    model.add(Dense(128, activation='relu'))
+    model.add(Dense(128, activation='relu', name='dense_1'))
     model.add(Dropout(0.5))
-    model.add(Dense(10, activation='softmax'))
+    model.add(Dense(10, activation='softmax', name='dense_2'))
 
     model.compile(loss=keras.losses.categorical_crossentropy,
                   optimizer=keras.optimizers.SGD(learning_rate=0.01),
@@ -49,7 +49,7 @@ def convert_keras_to_mlmodel(keras_url, mlmodel_url):
         keras_model,
         source="tensorflow",
         convert_to="neuralnetwork",
-        inputs=[coremltools.TensorType(shape=(1, 784))],
+        inputs=[coremltools.ImageType(shape=(1, 28, 28, 1), color_layout=coremltools.colorlayout.GRAYSCALE)],
         classifier_config=classifier_config
         )
     mlmodel.save(mlmodel_url)
