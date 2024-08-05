@@ -15,14 +15,18 @@ def create_keras_base_model(url):
     model = Sequential()
     model.add(Conv2D(32, kernel_size=(3, 3),
                      activation='relu',
-                     input_shape=(28, 28, 1)))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
-    model.add(Flatten())
-    model.add(Dense(128, activation='relu', name='dense_1'))
-    model.add(Dropout(0.5))
-    model.add(Dense(10, activation='softmax', name='dense_2'))
+                     input_shape=(28, 28, 1), name='conv2d_1'))
+    model.add(Conv2D(64, (3, 3), activation='relu', name='conv2d_2'))
+    model.add(MaxPooling2D(pool_size=(2, 2), name='max_pooling2d_1'))
+    model.add(Dropout(0.25, name='dropout_1'))
+    model.add(Flatten(name='flatten_1'))
+    densityLayer = Dense(128, activation='relu', name='dense_1')
+    densityLayer._name = 'dense_1'
+    model.add(densityLayer)
+    model.add(Dropout(0.5, name='dropout_2'))
+    densityLayer2 = Dense(10, activation='softmax', name='dense_2')
+    densityLayer2._name = 'dense_2'
+    model.add(densityLayer2)
 
     model.compile(loss=keras.losses.categorical_crossentropy,
                   optimizer=keras.optimizers.SGD(learning_rate=0.01),
@@ -94,17 +98,26 @@ def make_updatable(builder, mlmodel_url, mlmodel_updatable_path):
     mlmodel_updatable_path - the path the updatable Core ML model will be saved.
     """
     model_spec = builder.spec
+    print('inspect layers before marking for update')
+    print(builder.inspect_layers())
+    print(builder.layers)
+    print(builder.inspect_output_features())
+    builder.add_softmax(name='output_prob', input_name='output', output_name='output_prob')
 
     # make_updatable method is used to make a layer updatable. It requires a list of layer names.
     # dense_1 and dense_2 are two innerProduct layer in this example and we make them updatable.
     builder.make_updatable(['dense_1', 'dense_2'])
+    print('marked as updatable')
+    print(builder.inspect_layers())
+    print(builder.layers)
+    print(builder.inspect_output_features())
 
     # Categorical Cross Entropy or Mean Squared Error can be chosen for the loss layer.
     # Categorical Cross Entropy is used on this example. CCE requires two inputs: 'name' and 'input'.
     # name must be a string and will be the name associated with the loss layer
     # input must be the output of a softmax layer in the case of CCE. 
     # The loss's target will be provided automatically as a part of the model's training inputs.
-    builder.set_categorical_cross_entropy_loss(name='lossLayer', input='digitProbabilities')
+    builder.set_categorical_cross_entropy_loss(name='lossLayer', input='output_prob')
 
     # in addition of the loss layer, an optimizer must also be defined. SGD and Adam optimizers are supported.
     # SGD has been used for this example. To use SGD, one must set lr(learningRate) and batch(miniBatchSize) (momentum is an optional parameter).
@@ -127,7 +140,7 @@ coreml_updatable_model_path = './product/UpdatableMNISTDigitClassifier.mlmodel'
 make_updatable(builder, coreml_model_path, coreml_updatable_model_path)
 
 spec = coremltools.utils.load_spec(coreml_updatable_model_path)
-builder = coremltools.models.neural_network.NeuralNetworkBuilder(spec=spec)
+builder = coremltools.models.neural_network.NeuralNetworkBuilder(spec=spec, mode='classifier')
 
 builder.inspect_loss_layers()
 
