@@ -3,6 +3,17 @@ import argparse
 import zipfile
 import random
 from PIL import Image, ImageDraw, ImageFont
+from fontTools.ttLib import TTFont
+
+# def digit_in_font(digit, font_path):
+#     """
+#         Check if a font has a glyph for a given digit
+#     """
+#     font = TTFont(font_path)
+#     for table in font['cmap'].tables:
+#         if ord(chr(digit)) in table.cmap.keys():
+#             return True
+#     return False
 
 def find_font_vector(font_path, text):
     """
@@ -14,23 +25,27 @@ def find_font_vector(font_path, text):
     iterations = 0
     while True:
         iterations += 1
-        if iterations > 10:
+        if iterations > 20:
             print("failed to find vector from iterations!")
             raise Exception("Failed to find font vector")
         
         font = ImageFont.truetype(font=font_path, size=font_size, layout_engine=ImageFont.Layout.BASIC)
         bounding_box = font.getbbox(text)
+        width = bounding_box[2] - bounding_box[0]
         height = bounding_box[3] - bounding_box[1]
+        if height == 0:
+            # This happens when the glpyh is defined but empty
+            raise Exception("Font height is 0, unable to draw glyph")
         # assuming font glyphs have a greater width than height
-        if height > 20:
+        if height > 21 or width > 21:
             print("Text too large! - ", str(height))
             font_size -= 2
-        elif height < 16:
+        elif height < 16 and width < 16:
             print("Text too small! - ", str(height))
             font_size += 2
         else:
-            x = ((28 - (bounding_box[2] - bounding_box[0])) // 2)
-            y = ((28 - (bounding_box[3] - bounding_box[1])) // 2)
+            x = ((28 - width) // 2)
+            y = ((28 - height) // 2)
             break
     
     print(f"returning text of {font_size} at {x}, {y}")
@@ -47,8 +62,6 @@ def main(fonts_path, start_digit, end_digit):
     if os.path.exists(output_dir):
         os.system(f'rm -rf {output_dir}')
     os.makedirs(output_dir, exist_ok=True)
-
-    font_max = 5 # Bail early
 
     # Splits
     train = 90
@@ -68,13 +81,13 @@ def main(fonts_path, start_digit, end_digit):
     for root, _, files in os.walk(fonts_dir):
         if "__MACOSX" in root:
             continue
-        if "Barcode" in root:
-                continue
-        if "Blank" in root:
-            continue
         
         for file in files:
             if "Highlight" in file:
+                continue
+            if "Barcode" in file:
+                continue
+            if "Blank" in file:
                 continue
 
             if file.endswith('.ttf'):
@@ -97,6 +110,10 @@ def main(fonts_path, start_digit, end_digit):
                 fill = "white"
 
                 for digit in range(int(start_digit), int(end_digit) + 1):
+                    # if digit_in_font(digit, font_path) == False:
+                    #     print("Missing ", digit, " skipping ", font_name)
+                    #     continue
+
                     background = "black"
                     # 8 bit grayscale https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes
                     img = Image.new(mode='L', size=(28, 28), color=background)
@@ -115,12 +132,6 @@ def main(fonts_path, start_digit, end_digit):
                         break
 
                 total_fonts += 1
-
-                if font_max > 0 & total_fonts >= font_max:
-                    break
-
-        if font_max > 0 & total_fonts >= font_max:
-            break
 
     print()
     print(f"Total fonts: {total_fonts}")
