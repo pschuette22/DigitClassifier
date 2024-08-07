@@ -1,14 +1,8 @@
 # Mac OS files
 .DS_Store
 
-# Conda environment
-fine-tuner-env/
-
 # Avoid storing large files 
 output/
-fonts/*.zip
 dataset/**
 
-preview/
 product/
-samples/
