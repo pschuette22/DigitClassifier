@@ -4,7 +4,42 @@ import zipfile
 import random
 from PIL import Image, ImageDraw, ImageFont
 
+def find_font_vector(font_path, text):
+    """
+        Find the origin and font size that fits the text in a 28 x 28 image
+    """
+    print("fitting font to size")
+    font_size = 27
+    x,y = 0,0
+    iterations = 0
+    while True:
+        iterations += 1
+        if iterations > 10:
+            print("failed to find vector from iterations!")
+            raise Exception("Failed to find font vector")
+        
+        font = ImageFont.truetype(font=font_path, size=font_size, layout_engine=ImageFont.Layout.BASIC)
+        bounding_box = font.getbbox(text)
+        height = bounding_box[3] - bounding_box[1]
+        # assuming font glyphs have a greater width than height
+        if height > 20:
+            print("Text too large! - ", str(height))
+            font_size -= 2
+        elif height < 16:
+            print("Text too small! - ", str(height))
+            font_size += 2
+        else:
+            x = ((28 - (bounding_box[2] - bounding_box[0])) // 2)
+            y = ((28 - (bounding_box[3] - bounding_box[1])) // 2)
+            break
+    
+    print(f"returning text of {font_size} at {x}, {y}")
+    return (font_size, (x,y))
+
 def main(fonts_path, start_digit, end_digit):
+    print("build from fonts at: ", fonts_path)
+    print("lower bound digit: ", start_digit)
+    print("upper bound digit: ", end_digit)
     working_dir = os.getcwd()
     output_dir = os.path.join(working_dir, 'dataset/fonts')
     fonts_dir = os.path.join(fonts_path, 'ofl')
@@ -34,13 +69,14 @@ def main(fonts_path, start_digit, end_digit):
         if "__MACOSX" in root:
             continue
         if "Barcode" in root:
-            continue
+                continue
         if "Blank" in root:
             continue
-        if "Highlight" in root:
-            continue
-
+        
         for file in files:
+            if "Highlight" in file:
+                continue
+
             if file.endswith('.ttf'):
                 # Determine what set this belongs to
                 seed = random.randint(0, train + test + validate)
@@ -62,15 +98,19 @@ def main(fonts_path, start_digit, end_digit):
 
                 for digit in range(int(start_digit), int(end_digit) + 1):
                     background = "black"
-
-                    img = Image.new('RGB', (28, 28), color=background)
+                    # 8 bit grayscale https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes
+                    img = Image.new(mode='L', size=(28, 28), color=background)
                     draw = ImageDraw.Draw(img)
                     try:
-                        font = ImageFont.truetype(font=font_path, size=18, layout_engine=ImageFont.Layout.BASIC)
-                        draw.text((14, 14), str(digit), fill=fill, font=font, anchor="mm")
-                        img.save(os.path.join(result_dir, str(digit), f"{digit}_{font_name}.jpg"))
-                    except:
-                        print(f"!!! Failed to draw {font} ({font_path}) !!!")
+                        text = str(digit)
+                        font_vector = find_font_vector(font_path, text)
+                        font_size = font_vector[0]
+                        font_coords = font_vector[1]
+                        font = ImageFont.truetype(font=font_path, size=font_size, layout_engine=ImageFont.Layout.BASIC)
+                        draw.text((font_coords[0], font_coords[1]), text, fill=fill, font=font, anchor="lt")
+                        img.save(os.path.join(result_dir, text, f"{digit}_{font_name}.jpg"))
+                    except Exception as error:
+                        print(f"!!! Failed to draw {font} ({font_path}) !!! \n{error}")
                         total_fonts -= 1 # Assumes we aren't able to draw any digits and easier than skipping the incriment
                         break
 
