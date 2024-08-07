@@ -17,7 +17,7 @@ def print_digit_representation(representation):
                 row += " "
         print(row)
 
-def convert_keras_to_mlmodel(keras_model, mlmodel_url):
+def convert_keras_to_mlmodel(keras_model_url, mlmodel_url):
     """This method simply converts the keras model to a mlmodel using coremltools.
     keras_url - The URL the keras model will be loaded.
     mlmodel_url - the URL the Core ML model will be saved.
@@ -28,11 +28,11 @@ def convert_keras_to_mlmodel(keras_model, mlmodel_url):
     # from coremltools.converters import keras as keras_converter
     class_labels = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     classifier_config = ct.ClassifierConfig(class_labels)
-
+    keras_model = load_model(keras_model_url)
     mlmodel = ct.converters.convert(
         keras_model,
         source="tensorflow",
-        # convert_to="neuralnetwork",
+        convert_to="neuralnetwork",
         inputs=[ct.ImageType(shape=(1, 28, 28, 1), color_layout=ct.colorlayout.GRAYSCALE)],
         classifier_config=classifier_config
     )
@@ -68,7 +68,7 @@ font_test_dataset = 'dataset/fonts/test'
 fonts_train_dataset = image_dataset_from_directory(
     font_training_data,
     labels='inferred',
-    label_mode='int',
+    label_mode='categorical',
     color_mode='grayscale',
     batch_size=32,
     image_size=(28, 28),
@@ -78,7 +78,7 @@ fonts_train_dataset = image_dataset_from_directory(
 fonts_test_dataset = image_dataset_from_directory(
     font_test_dataset,
     labels='inferred',
-    label_mode='int',
+    label_mode='categorical',
     color_mode='grayscale',
     batch_size=32,
     image_size=(28, 28),
@@ -89,10 +89,6 @@ fonts_test_dataset = image_dataset_from_directory(
 normalization_layer = tf.keras.layers.Rescaling(1./255)
 fonts_train_dataset = fonts_train_dataset.map(lambda x, y: (normalization_layer(x), y))
 fonts_test_dataset = fonts_test_dataset.map(lambda x, y: (normalization_layer(x), y))
-
-# Convert the labels to categorical
-fonts_train_dataset = fonts_train_dataset.map(lambda x, y: (x, to_categorical(y, 10)))
-fonts_test_dataset = fonts_test_dataset.map(lambda x, y: (x, to_categorical(y, 10)))
 
 # Split to format model fitting
 x_train_fonts = np.concatenate([x for x, y in fonts_train_dataset])
@@ -110,24 +106,24 @@ print(y_train[0])
 batch_size = 128
 epochs = 3
 
-model = keras.Sequential(
-    [
-        layers.Input(shape=input_shape),
-        layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
-        layers.MaxPooling2D(pool_size=(2, 2)),
-        layers.Conv2D(64, kernel_size=(3, 3), activation="relu"),
-        layers.MaxPooling2D(pool_size=(2, 2)),
-        layers.Flatten(),
-        layers.Dropout(0.5),
-        layers.Dense(num_classes, activation="softmax"),
-    ]
-)
+keras.backend.clear_session()
+model = keras.Sequential()
+model.add(layers.Input(shape=input_shape))
+model.add(layers.Conv2D(32, kernel_size=(3, 3),
+                    activation='relu'))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.Dropout(0.25))
+model.add(layers.Flatten())
+model.add(layers.Dense(128, activation='relu'))
+model.add(layers.Dropout(0.5))
+model.add(layers.Dense(10, activation='softmax'))
+
+model.compile(loss=keras.losses.categorical_crossentropy,
+                optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=0.01),
+                metrics=['accuracy'])
 
 model.summary()
-
-model.compile(
-    loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"]
-)
 
 model.fit(
     x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1
@@ -144,6 +140,10 @@ model.summary()
 
 # Save the model
 
+keras_model_path = 'product/mnist_model.h5'
+model.save(keras_model_path)
+convert_keras_to_mlmodel(keras_model_path, 'product/DigitClassifier.mlmodel')
+
 # Continue with the rest of your code to train the model
 model.fit(
     x_train_fonts, y_train_fonts, batch_size=32, epochs=epochs, validation_split=0.1
@@ -157,3 +157,8 @@ print("Font Test loss:", font_score[0])
 print("Font Test accuracy:", font_score[1])
 
 model.summary()
+
+# Save the model
+keras_model_path = 'product/tuned_mnist_model.h5'
+model.save(keras_model_path)
+convert_keras_to_mlmodel(keras_model_path, 'product/TunedDigitClassifier.mlmodel')

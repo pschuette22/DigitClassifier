@@ -24,7 +24,7 @@ font_test_dataset = 'dataset/fonts/test'
 fonts_train_dataset = image_dataset_from_directory(
     font_training_data,
     labels='inferred',
-    label_mode='int',
+    label_mode='categorical',
     color_mode='grayscale',
     batch_size=32,
     image_size=(28, 28),
@@ -34,7 +34,7 @@ fonts_train_dataset = image_dataset_from_directory(
 fonts_test_dataset = image_dataset_from_directory(
     font_test_dataset,
     labels='inferred',
-    label_mode='int',
+    label_mode='categorical',
     color_mode='grayscale',
     batch_size=32,
     image_size=(28, 28),
@@ -46,9 +46,9 @@ normalization_layer = tf.keras.layers.Rescaling(1./255)
 fonts_train_dataset = fonts_train_dataset.map(lambda x, y: (normalization_layer(x), y))
 fonts_test_dataset = fonts_test_dataset.map(lambda x, y: (normalization_layer(x), y))
 
-# Convert the labels to categorical
-fonts_train_dataset = fonts_train_dataset.map(lambda x, y: (x, to_categorical(y, 10)))
-fonts_test_dataset = fonts_test_dataset.map(lambda x, y: (x, to_categorical(y, 10)))
+# # Convert the labels to categorical
+# fonts_train_dataset = fonts_train_dataset.map(lambda x, y: (x, to_categorical(y, 10)))
+# fonts_test_dataset = fonts_test_dataset.map(lambda x, y: (x, to_categorical(y, 10)))
 
 
 # Combine the fonts dataset with the existing MNIST dataset

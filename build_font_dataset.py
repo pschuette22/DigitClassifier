@@ -64,11 +64,11 @@ def main(fonts_path, start_digit, end_digit):
     os.makedirs(output_dir, exist_ok=True)
 
     # Splits
-    train = 90
+    train = 80
     train_fonts = 0
     test = 10
     test_fonts = 0
-    validate = 0
+    validate = 10
     validate_fonts = 0
 
     for digit in range(int(start_digit), int(end_digit) + 1):
