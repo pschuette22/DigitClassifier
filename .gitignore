@@ -3,5 +3,6 @@
 
 # Avoid storing large files 
 output/
-fonts/*.zip
 dataset/**
+
+product/
