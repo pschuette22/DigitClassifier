@@ -4,8 +4,8 @@ from PIL import Image
 # from IPython.display import display, Markdown, Latex
 
 apple_model = ct.models.MLModel('MNISTClassifier.mlmodel')
-basic_model = ct.models.MLModel('product/DigitClassifier.mlmodel')
-tuned_model = ct.models.MLModel('product/TunedDigitClassifier.mlmodel')
+basic_model = ct.models.MLModel('product/DigitClassifier1.mlmodel')
+tuned_model = ct.models.MLModel('product/TunedDigitClassifier1.mlmodel')
 
 validate_images = 'dataset/fonts/validate'
 

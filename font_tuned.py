@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import keras
 from keras import layers
@@ -16,6 +17,22 @@ def print_digit_representation(representation):
             else:
                 row += " "
         print(row)
+
+def ensure_unique(file_path: str):
+    """Adds a unique index, to a filepath so ensure no overwrites
+    """
+    from pathlib import Path
+    unique_path = file_path
+    # TODO: make this more robust or find the proper lib (Low priority)
+    # does not work with directories containing '.'
+    stem = file_path.split('.')[0]
+    extension = file_path.removeprefix(f"{stem}.")
+    index = 0
+    while os.path.isfile(unique_path):
+        index += 1
+        unique_path = f"{stem}{index}.{extension}"
+    return unique_path
+
 
 def convert_keras_to_mlmodel(keras_model_url, mlmodel_url):
     """This method simply converts the keras model to a mlmodel using coremltools.
@@ -140,9 +157,10 @@ model.summary()
 
 # Save the model
 
-keras_model_path = 'product/mnist_model.h5'
+keras_model_path = ensure_unique('product/mnist_model.h5')
 model.save(keras_model_path)
-convert_keras_to_mlmodel(keras_model_path, 'product/DigitClassifier.mlmodel')
+digit_classifier_path = ensure_unique('product/DigitClassifier.mlmodel')
+convert_keras_to_mlmodel(keras_model_path, digit_classifier_path)
 
 # Continue with the rest of your code to train the model
 model.fit(
@@ -159,6 +177,7 @@ print("Font Test accuracy:", font_score[1])
 model.summary()
 
 # Save the model
-keras_model_path = 'product/tuned_mnist_model.h5'
-model.save(keras_model_path)
-convert_keras_to_mlmodel(keras_model_path, 'product/TunedDigitClassifier.mlmodel')
+tuned_keras_model_path = ensure_unique('product/tuned_mnist_model.h5')
+model.save(tuned_keras_model_path)
+tuned_digit_classifier_path = ensure_unique('product/TunedDigitClassifier.mlmodel')
+convert_keras_to_mlmodel(tuned_keras_model_path, tuned_digit_classifier_path)

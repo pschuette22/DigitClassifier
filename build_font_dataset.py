@@ -3,23 +3,33 @@ import argparse
 import zipfile
 import random
 from PIL import Image, ImageDraw, ImageFont
-from fontTools.ttLib import TTFont
 
-# def digit_in_font(digit, font_path):
-#     """
-#         Check if a font has a glyph for a given digit
-#     """
-#     font = TTFont(font_path)
-#     for table in font['cmap'].tables:
-#         if ord(chr(digit)) in table.cmap.keys():
-#             return True
-#     return False
+
+# TODO: consider a trie or an otherwise better datastructure
+# Maybe a yml with rules and fonts separated to initialize a model
+def load_ignore_ruleset():
+    ignore_rules = []
+    with open('dataset/ignored.txt') as file:
+        for line in file:
+            stripped = line.strip()
+            # Ignore comments and empty strings
+            if stripped.startswith("#") or len(stripped) == 0:
+                continue
+            print(f"adding ignore rule: {stripped}")
+            ignore_rules.append(stripped)
+    return ignore_rules
+
+def ignore_font(font_name, ignore_rules):
+    for rule in ignore_rules:
+        if font_name.count(rule) > 0:
+            print(f"ignoring {font_name}")
+            return True
+    return False
 
 def find_font_vector(font_path, text):
     """
         Find the origin and font size that fits the text in a 28 x 28 image
     """
-    print("fitting font to size")
     font_size = 27
     x,y = 0,0
     iterations = 0
@@ -38,17 +48,13 @@ def find_font_vector(font_path, text):
             raise Exception("Font height is 0, unable to draw glyph")
         # assuming font glyphs have a greater width than height
         if height > 21 or width > 21:
-            print("Text too large! - ", str(height))
             font_size -= 2
         elif height < 16 and width < 16:
-            print("Text too small! - ", str(height))
             font_size += 2
         else:
             x = ((28 - width) // 2)
             y = ((28 - height) // 2)
-            break
-    
-    print(f"returning text of {font_size} at {x}, {y}")
+            break    
     return (font_size, (x,y))
 
 def main(fonts_path, start_digit, end_digit):
@@ -77,20 +83,15 @@ def main(fonts_path, start_digit, end_digit):
         os.makedirs(os.path.join(output_dir, "validate", str(digit)), exist_ok=True)
 
     total_fonts = 0
-
+    ignore_ruleset = load_ignore_ruleset()
     for root, _, files in os.walk(fonts_dir):
         if "__MACOSX" in root:
             continue
         
         for file in files:
-            if "Highlight" in file:
-                continue
-            if "Barcode" in file:
-                continue
-            if "Blank" in file:
-                continue
-
             if file.endswith('.ttf'):
+                if ignore_font(file, ignore_ruleset):
+                    continue
                 # Determine what set this belongs to
                 seed = random.randint(0, train + test + validate)
                 result_dir = output_dir
@@ -110,9 +111,6 @@ def main(fonts_path, start_digit, end_digit):
                 fill = "white"
 
                 for digit in range(int(start_digit), int(end_digit) + 1):
-                    # if digit_in_font(digit, font_path) == False:
-                    #     print("Missing ", digit, " skipping ", font_name)
-                    #     continue
 
                     background = "black"
                     # 8 bit grayscale https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes
