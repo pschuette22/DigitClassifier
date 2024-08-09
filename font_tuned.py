@@ -165,7 +165,7 @@ convert_keras_to_mlmodel(keras_model_path, digit_classifier_path)
 
 # Continue with the rest of your code to train the model
 model.fit(
-    x_train_fonts, y_train_fonts, batch_size=64, epochs=3, validation_split=0.1
+    x_train_fonts, y_train_fonts, batch_size=64, epochs=2, validation_split=0.1
 )
 
 mnist_score = model.evaluate(x_test, y_test, verbose=0)
