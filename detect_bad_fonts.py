@@ -4,8 +4,8 @@ from PIL import Image
 from pathlib import Path
 
 apple_model = ct.models.MLModel('MNISTClassifier.mlmodel')
-basic_model = ct.models.MLModel('product/DigitClassifier.mlmodel')
-tuned_model = ct.models.MLModel('product/TunedDigitClassifier.mlmodel')
+basic_model = ct.models.MLModel('product/DigitClassifier11.mlmodel')
+tuned_model = ct.models.MLModel('product/TunedDigitClassifier11.mlmodel')
 
 font_images = 'dataset/fonts'
 
@@ -74,11 +74,9 @@ for missed_font in universal_misses:
     image_name = image_path_stem.split('/')[-1]
     digit = int(image_name.split("_")[0])
     font_name = image_name.replace(f"{digit}_", "")
-    if digit == 0:
-        continue # Ignore 0, false positives come from an empty box
     if font_family_counts.get(font_name) is None:
         font_family_counts[font_name] = 1
-    elif font_family_counts[font_name] >= 4: # Over half are missed
+    elif font_family_counts[font_name] >= 3: # All models missed on multiple digits in this font
         universal_miss_fonts.add(font_name)
     else:
         font_family_counts[font_name] += 1

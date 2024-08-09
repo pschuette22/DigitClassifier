@@ -3,9 +3,10 @@ import coremltools as ct
 from PIL import Image
 # from IPython.display import display, Markdown, Latex
 
+iteration = 18
 apple_model = ct.models.MLModel('MNISTClassifier.mlmodel')
-basic_model = ct.models.MLModel('product/DigitClassifier1.mlmodel')
-tuned_model = ct.models.MLModel('product/TunedDigitClassifier1.mlmodel')
+basic_model = ct.models.MLModel(f'product/DigitClassifier{iteration}.mlmodel')
+tuned_model = ct.models.MLModel(f'product/TunedDigitClassifier{iteration}.mlmodel')
 
 validate_images = 'dataset/fonts/validate'
 
@@ -13,6 +14,7 @@ validate_images = 'dataset/fonts/validate'
 models = [("Apple", 'image', apple_model), ("Basic", 'input_1', basic_model), ("Tuned", 'input_1', tuned_model)]
 hits = [0, 0, 0]
 images = 0
+tuned_misses = []
 # Iterate over the files in the folder
 for root, dir, files in os.walk(validate_images):
     for file in files:
@@ -35,16 +37,25 @@ for root, dir, files in os.walk(validate_images):
                 hits[models.index(model)] += 1
                 # print(f"{model[0]} predicted {digit} correctly")
             else:
-                # Get the predicted digit
-                # print(prediction)
-                print(f'Predicted: {digit}')
-                # Get the actual digit
-                print(f'Actual: {actual_digit}')
-                print(f"{model[0]} predicted {digit} incorrectly ({file_path})")
                 model_misses += 1
+                if model[0] == "Tuned":                    
+                    print(f"{model[0]} predicted {digit} incorrectly ({actual_digit}) ({file_path})")
+                    missline = file_path
+                    if model_misses == 3:
+                        missline += f" (Universal miss) {actual_digit} != {digit}"
+                    tuned_misses.append(missline)
         if model_misses == 3:
             print(f"All models missed {file_path}")
 
+print()
+print(" == Tuned Model Misses == ")
+print()
+
+for tuned_miss in tuned_misses:
+    print(tuned_miss)
+print()
+print(" === ")
+print()
 print(f"Apple: {hits[0]} out of {images}: {hits[0] / images}")
 print(f"Basic: {hits[1]} out of {images}: {hits[1] / images}")
 print(f"Tuned: {hits[2]} out of {images}: {hits[2] / images}")
