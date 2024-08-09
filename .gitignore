@@ -4,5 +4,6 @@
 # Avoid storing large files 
 output/
 dataset/**
+fonts/
 
 product/
