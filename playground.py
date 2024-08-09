@@ -3,7 +3,7 @@ import coremltools as ct
 from PIL import Image
 # from IPython.display import display, Markdown, Latex
 
-iteration = 22
+iteration = 25
 apple_model = ct.models.MLModel('MNISTClassifier.mlmodel')
 basic_model = ct.models.MLModel(f'product/DigitClassifier{iteration}.mlmodel')
 tuned_model = ct.models.MLModel(f'product/TunedDigitClassifier{iteration}.mlmodel')

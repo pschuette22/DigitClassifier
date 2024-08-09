@@ -1537,3 +1537,5 @@ weaver
 wincing
 WindSong-Regular
 zirconia
+brigadow
+Cherish-Regular
