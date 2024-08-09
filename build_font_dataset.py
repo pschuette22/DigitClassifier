@@ -3,7 +3,7 @@ import argparse
 import zipfile
 import random
 from PIL import Image, ImageDraw, ImageFont
-
+from pathlib import Path
 
 # TODO: consider a trie or an otherwise better datastructure
 # Maybe a yml with rules and fonts separated to initialize a model
@@ -83,7 +83,11 @@ def main(fonts_path, start_digit, end_digit):
 
     total_fonts = 0
     ignore_ruleset = load_ignore_ruleset()
-    for directory in [fonts_path, '~/Library/Fonts']:
+    for directory in [os.path.join(Path.home(), 'Library/Fonts'), fonts_path]:
+        print()
+        print(f"Processing fonts in {directory}")
+        print()
+        print()
         for root, _, files in os.walk(directory):
             if "__MACOSX" in root:
                 continue
