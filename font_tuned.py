@@ -123,20 +123,21 @@ print_digit_representation(x_train[0])
 print(y_train[0])
 
 batch_size = 32
-epochs = 4
+epochs = 3
 
 keras.backend.clear_session()
 model = keras.Sequential()
 model.add(layers.Input(shape=input_shape))
 model.add(layers.Conv2D(32, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
 model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
-model.add(layers.BatchNormalization())
+# model.add(layers.BatchNormalization())
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
-model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
+model.add(layers.Dropout(0.25))
+model.add(layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform'))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 model.add(layers.Flatten())
-model.add(layers.Dense(128, activation='relu'))
+model.add(layers.Dense(100, activation='relu'))
 model.add(layers.Dense(10, activation='softmax'))
 
 model.compile(loss=keras.losses.categorical_crossentropy,
@@ -167,7 +168,7 @@ convert_keras_to_mlmodel(keras_model_path, digit_classifier_path)
 
 # Continue with the rest of your code to train the model
 model.fit(
-    x_train_fonts, y_train_fonts, batch_size=64, epochs=2, validation_split=0.1
+    x_train_fonts, y_train_fonts, batch_size=batch_size, epochs=epochs, validation_split=0.1
 )
 
 mnist_score = model.evaluate(x_test, y_test, verbose=0)

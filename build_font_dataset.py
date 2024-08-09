@@ -4,9 +4,22 @@ import zipfile
 import random
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
+from fontTools.ttLib import TTFont
 
 # TODO: consider a trie or an otherwise better datastructure
 # Maybe a yml with rules and fonts separated to initialize a model
+
+def contains_digit(font_path, digit):
+    try:
+        font = TTFont(font_path)
+        for table in font['cmap'].tables:
+            if ord(str(digit)) in table.cmap.keys():
+                return True
+    except Exception as e:
+        print(e)
+    print(f"skipping {font_path} because it doesn't contain {digit}")
+    return False
+
 def load_ignore_ruleset():
     ignore_rules = []
     with open('dataset/ignored.txt') as file:
@@ -115,6 +128,8 @@ def main(fonts_path, start_digit, end_digit):
                     fill = "white"
 
                     for digit in range(int(start_digit), int(end_digit) + 1):
+                        if not contains_digit(font_path, digit):
+                            continue
 
                         background = "black"
                         # 8 bit grayscale https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes
@@ -127,7 +142,7 @@ def main(fonts_path, start_digit, end_digit):
                             font_coords = font_vector[1]
                             font = ImageFont.truetype(font=font_path, size=font_size, layout_engine=ImageFont.Layout.BASIC)
                             draw.text((font_coords[0], font_coords[1]), text, fill=fill, font=font, anchor="lt")
-                            img.save(os.path.join(result_dir, text, f"{digit}_{font_name}.jpg"))
+                            img.save(os.path.join(result_dir, text, f"{font_name}.jpg"))
                         except Exception as error:
                             print(f"!!! Failed to draw {font} ({font_path}) !!! \n{error}")
                             total_fonts -= 1 # Assumes we aren't able to draw any digits and easier than skipping the incriment

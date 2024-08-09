@@ -1,9 +1,10 @@
 import os
 import coremltools as ct
 from PIL import Image
+import numpy as np
 # from IPython.display import display, Markdown, Latex
 
-iteration = 25
+iteration = 32
 apple_model = ct.models.MLModel('MNISTClassifier.mlmodel')
 basic_model = ct.models.MLModel(f'product/DigitClassifier{iteration}.mlmodel')
 tuned_model = ct.models.MLModel(f'product/TunedDigitClassifier{iteration}.mlmodel')
@@ -15,6 +16,8 @@ models = [("Apple", 'image', apple_model), ("Basic", 'input_1', basic_model), ("
 hits = [0, 0, 0]
 images = 0
 tuned_misses = []
+missed_digits = np.repeat(0, 10)
+guessed_digits = np.repeat(0, 10)
 # Iterate over the files in the folder
 for root, dir, files in os.walk(validate_images):
     for file in files:
@@ -38,7 +41,9 @@ for root, dir, files in os.walk(validate_images):
                 # print(f"{model[0]} predicted {digit} correctly")
             else:
                 model_misses += 1
-                if model[0] == "Tuned":                    
+                if model[0] == "Tuned":
+                    missed_digits[actual_digit] += 1
+                    guessed_digits[digit] += 1                    
                     print(f"{model[0]} predicted {digit} incorrectly ({actual_digit}) ({file_path})")
                     missline = file_path
                     if model_misses == 3:
@@ -59,3 +64,7 @@ print()
 print(f"Apple: {hits[0]} out of {images}: {hits[0] / images}")
 print(f"Basic: {hits[1]} out of {images}: {hits[1] / images}")
 print(f"Tuned: {hits[2]} out of {images}: {hits[2] / images}")
+print()
+for i in range(10):
+    print(f"Guessed {i}: {guessed_digits[i]}")
+    print(f"Missed {i}: {missed_digits[i]}")
