@@ -5,8 +5,8 @@ from pathlib import Path
 import numpy as np
 
 apple_model = ct.models.MLModel('MNISTClassifier.mlmodel')
-basic_model = ct.models.MLModel('product/DigitClassifier31.mlmodel')
-tuned_model = ct.models.MLModel('product/TunedDigitClassifier31.mlmodel')
+basic_model = ct.models.MLModel('product/DigitClassifier53.mlmodel')
+tuned_model = ct.models.MLModel('product/TunedDigitClassifier51.mlmodel')
 font_images = 'dataset/fonts'
 
 def font_digit(file_path) -> int:
@@ -22,6 +22,7 @@ models = [("Apple", 'image', apple_model), ("Basic", 'input_1', basic_model), ("
 hits = np.repeat(0, 3)
 images = 0
 # Iterate over the files in the folder
+exclusion_fonts = set()
 universal_misses = []
 missed_fonts = {}
 universal_miss_digits = np.repeat(0, 10)
@@ -55,8 +56,13 @@ for root, dir, files in os.walk(font_images):
                 missed_fonts[font_family(file_path)] = missed_fonts.get(font_family(file_path), 0) + 1
 
         if model_misses == 3:
-            universal_miss_digits[actual_digit] += 1
-            universal_misses.append(file_path)
+            if actual_digit == 9:
+                # Bias towards 9 confusion - this seems to cause a lot of confusion
+                confusion_font = font_family(file_path)
+                exclusion_fonts.add(confusion_font)
+            else:
+                universal_miss_digits[actual_digit] += 1
+                universal_misses.append(file_path)
 
             print(f"All models missed {file_path}")
 
@@ -73,7 +79,7 @@ print(f"Total misses: {len(universal_misses)}")
 print_array_line_by_line(universal_misses)
 
 # Determine what universal misses cover the entire font family
-exclusion_fonts = set()
+
 font_family_counts = {}
 for font_file in universal_misses:
     missed_font = font_family(font_file)
