@@ -91,7 +91,7 @@ fonts_train_dataset = image_dataset_from_directory(
     image_size=(28, 28),
     shuffle=False
 )
-fonts_train_dataset.shuffle(100)
+fonts_train_dataset.shuffle(123, reshuffle_each_iteration=True)
 
 fonts_test_dataset = image_dataset_from_directory(
     font_test_dataset,
@@ -102,7 +102,7 @@ fonts_test_dataset = image_dataset_from_directory(
     image_size=(28, 28),
     shuffle=False
 )
-fonts_test_dataset.shuffle(100)
+fonts_test_dataset.shuffle(123, reshuffle_each_iteration=True)
 
 # Normalize the images to the [0, 1] range
 normalization_layer = tf.keras.layers.Rescaling(1./255)
@@ -123,18 +123,22 @@ print_digit_representation(x_train[0])
 print(y_train[0])
 
 batch_size = 32
-epochs = 4
+epochs = 5
 
 keras.backend.clear_session()
 model = keras.Sequential()
 model.add(layers.Input(shape=input_shape))
-model.add(layers.Conv2D(128, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
+model.add(layers.Dense(100, activation='relu'))
+model.add(layers.Conv2D(32, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
 model.add(layers.Conv2D(64, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(layers.BatchNormalization())
 model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
+model.add(layers.Dropout(0.2))
 model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 model.add(layers.Flatten())
+model.add(layers.Dropout(0.2))
 model.add(layers.Dense(100, activation='relu'))
 model.add(layers.Dense(10, activation='softmax'))
 
@@ -164,9 +168,20 @@ model.save(keras_model_path)
 digit_classifier_path = ensure_unique('product/DigitClassifier.mlmodel')
 convert_keras_to_mlmodel(keras_model_path, digit_classifier_path)
 
-# Continue with the rest of your code to train the model
+class_weight = {0: 1.,
+                1: 1.,
+                2: 1.,
+                3: 1.,
+                4: 1.,
+                5: 1.,
+                6: 1.,
+                7: 1.,
+                8: 1.,
+                9: 10.}
+
+# Tune to font dataset
 model.fit(
-    x_train_fonts, y_train_fonts, batch_size=64, epochs=2, validation_split=0.1
+    x_train_fonts, y_train_fonts, batch_size=batch_size, epochs=3, validation_split=0.1, class_weight=class_weight
 )
 
 mnist_score = model.evaluate(x_test, y_test, verbose=0)
