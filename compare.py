@@ -6,8 +6,8 @@ import numpy as np
 
 iteration = 51
 apple_model = ct.models.MLModel('MNISTClassifier.mlmodel')
-basic_model = ct.models.MLModel(f'product/DigitClassifier51.mlmodel')
-tuned_model = ct.models.MLModel(f'product/TunedDigitClassifier49.mlmodel')
+basic_model = ct.models.MLModel(f'product/DigitClassifier52.mlmodel')
+tuned_model = ct.models.MLModel(f'product/TunedDigitClassifier50.mlmodel')
 
 validate_images = 'dataset/fonts/validate'
 
