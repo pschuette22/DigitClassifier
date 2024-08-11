@@ -55,6 +55,27 @@ def convert_keras_to_mlmodel(keras_model_url, mlmodel_url):
     )
     mlmodel.save(mlmodel_url)
 
+def build_keras_model():
+    keras.backend.clear_session()
+    model = keras.Sequential()
+    model.add(layers.Input(shape=input_shape))
+    model.add(layers.Conv2D(32, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
+    model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(100, activation='relu'))
+    model.add(layers.Dense(10, activation='softmax'))
+
+    model.compile(loss=keras.losses.categorical_crossentropy,
+                    optimizer=tf.keras.optimizers.legacy.SGD(learning_rate=0.01, momentum=0.9),
+                    metrics=['accuracy'])
+
+    model.summary()
+    return model
+
+
 # Model / data parameters
 num_classes = 10
 input_shape = (28, 28, 1)
@@ -125,43 +146,26 @@ print(y_train[0])
 batch_size = 32
 epochs = 5
 
-keras.backend.clear_session()
-model = keras.Sequential()
-model.add(layers.Input(shape=input_shape))
-model.add(layers.Conv2D(32, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
-model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
-model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
-model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-model.add(layers.Flatten())
-model.add(layers.Dense(100, activation='relu'))
-model.add(layers.Dense(10, activation='softmax'))
+basic_model = build_keras_model()
 
-model.compile(loss=keras.losses.categorical_crossentropy,
-                optimizer=tf.keras.optimizers.legacy.SGD(learning_rate=0.01, momentum=0.9),
-                metrics=['accuracy'])
-
-model.summary()
-
-model.fit(
+basic_model.fit(
     x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1
 )
 
-mnist_score = model.evaluate(x_test, y_test, verbose=0)
+mnist_score = basic_model.evaluate(x_test, y_test, verbose=0)
 print("MNIST Test loss:", mnist_score[0])
 print("MNIST Test accuracy:", mnist_score[1])
-font_score = model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
+font_score = basic_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
 print("Font Test loss:", font_score[0])
 print("Font Test accuracy:", font_score[1])
 
-model.summary()
+basic_model.summary()
 
 # Save the model
-
-keras_model_path = ensure_unique('product/mnist_model.h5')
-model.save(keras_model_path)
+basic_model_path = ensure_unique('product/mnist_model.h5')
+basic_model.save(basic_model_path)
 digit_classifier_path = ensure_unique('product/DigitClassifier.mlmodel')
-convert_keras_to_mlmodel(keras_model_path, digit_classifier_path)
+convert_keras_to_mlmodel(basic_model_path, digit_classifier_path)
 
 class_weight = {0: 1.,
                 1: 1.,
@@ -175,21 +179,29 @@ class_weight = {0: 1.,
                 9: 10.}
 
 # Tune to font dataset
-model.fit(
-    x_train_fonts, y_train_fonts, batch_size=batch_size, epochs=3, validation_split=0.1, class_weight=class_weight
+tuned_model = build_keras_model()
+
+# Combine MNIST and font datasets
+x_train_combined = np.concatenate((x_train, x_train_fonts), axis=0)
+y_train_combined = np.concatenate((y_train, y_train_fonts), axis=0)
+# x_test_combined = np.concatenate((x_test, x_test_fonts), axis=0)
+# y_test_combined = np.concatenate((y_test, y_test_fonts), axis=0)
+
+tuned_model.fit(
+    x_train_combined, y_train_combined, batch_size=batch_size, epochs=epochs, validation_split=0.1
 )
 
-mnist_score = model.evaluate(x_test, y_test, verbose=0)
+mnist_score = tuned_model.evaluate(x_test, y_test, verbose=0)
 print("MNIST Test loss:", mnist_score[0])
 print("MNIST Test accuracy:", mnist_score[1])
-font_score = model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
+font_score = tuned_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
 print("Font Test loss:", font_score[0])
 print("Font Test accuracy:", font_score[1])
 
-model.summary()
+tuned_model.summary()
 
 # Save the model
 tuned_keras_model_path = ensure_unique('product/tuned_mnist_model.h5')
-model.save(tuned_keras_model_path)
+tuned_model.save(tuned_keras_model_path)
 tuned_digit_classifier_path = ensure_unique('product/TunedDigitClassifier.mlmodel')
 convert_keras_to_mlmodel(tuned_keras_model_path, tuned_digit_classifier_path)
