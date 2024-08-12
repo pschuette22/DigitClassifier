@@ -3,10 +3,23 @@ import argparse
 import zipfile
 import random
 from PIL import Image, ImageDraw, ImageFont
-
+from pathlib import Path
+from fontTools.ttLib import TTFont
 
 # TODO: consider a trie or an otherwise better datastructure
 # Maybe a yml with rules and fonts separated to initialize a model
+
+def contains_digit(font_path, digit):
+    try:
+        font = TTFont(font_path)
+        for table in font['cmap'].tables:
+            if ord(str(digit)) in table.cmap.keys():
+                return True
+    except Exception as e:
+        print(e)
+    print(f"skipping {font_path} because it doesn't contain {digit}")
+    return False
+
 def load_ignore_ruleset():
     ignore_rules = []
     with open('dataset/ignored.txt') as file:
@@ -63,18 +76,17 @@ def main(fonts_path, start_digit, end_digit):
     print("upper bound digit: ", end_digit)
     working_dir = os.getcwd()
     output_dir = os.path.join(working_dir, 'dataset/fonts')
-    fonts_dir = os.path.join(fonts_path, 'ofl')
 
     if os.path.exists(output_dir):
         os.system(f'rm -rf {output_dir}')
     os.makedirs(output_dir, exist_ok=True)
 
     # Splits
-    train = 80
+    train = 8
     train_fonts = 0
-    test = 10
+    test = 1
     test_fonts = 0
-    validate = 10
+    validate = 1
     validate_fonts = 0
 
     for digit in range(int(start_digit), int(end_digit) + 1):
@@ -84,52 +96,59 @@ def main(fonts_path, start_digit, end_digit):
 
     total_fonts = 0
     ignore_ruleset = load_ignore_ruleset()
-    for root, _, files in os.walk(fonts_dir):
-        if "__MACOSX" in root:
-            continue
-        
-        for file in files:
-            if file.endswith('.ttf'):
-                if ignore_font(file, ignore_ruleset):
-                    continue
-                # Determine what set this belongs to
-                seed = random.randint(0, train + test + validate)
-                result_dir = output_dir
-                if seed <= train:
-                    result_dir=os.path.join(output_dir, "train")
-                    train_fonts += 1
-                elif seed <= train + test:
-                    result_dir=os.path.join(output_dir, "test")
-                    test_fonts += 1
-                else:
-                    result_dir=os.path.join(output_dir, "validate")
-                    validate_fonts += 1
+    for directory in [os.path.join(Path.home(), 'Library/Fonts'), fonts_path]:
+        print()
+        print(f"Processing fonts in {directory}")
+        print()
+        print()
+        for root, _, files in os.walk(directory):
+            if "__MACOSX" in root:
+                continue
+            
+            for file in files:
+                if file.endswith('.ttf'):
+                    if ignore_font(file, ignore_ruleset):
+                        continue
+                    # Determine what set this belongs to
+                    seed = random.randint(0, train + test + validate)
+                    result_dir = output_dir
+                    if seed <= train:
+                        result_dir=os.path.join(output_dir, "train")
+                        train_fonts += 1
+                    elif seed <= train + test:
+                        result_dir=os.path.join(output_dir, "test")
+                        test_fonts += 1
+                    else:
+                        result_dir=os.path.join(output_dir, "validate")
+                        validate_fonts += 1
 
-                font_path = os.path.join(root, file)
-                font_name = os.path.splitext(file)[0]
-                print(f"{total_fonts}: Processing font {font_name}")
-                fill = "white"
+                    font_path = os.path.join(root, file)
+                    font_name = os.path.splitext(file)[0]
+                    print(f"{total_fonts}: Processing font {font_name}")
+                    fill = "white"
 
-                for digit in range(int(start_digit), int(end_digit) + 1):
+                    for digit in range(int(start_digit), int(end_digit) + 1):
+                        if not contains_digit(font_path, digit):
+                            continue
 
-                    background = "black"
-                    # 8 bit grayscale https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes
-                    img = Image.new(mode='L', size=(28, 28), color=background)
-                    draw = ImageDraw.Draw(img)
-                    try:
-                        text = str(digit)
-                        font_vector = find_font_vector(font_path, text)
-                        font_size = font_vector[0]
-                        font_coords = font_vector[1]
-                        font = ImageFont.truetype(font=font_path, size=font_size, layout_engine=ImageFont.Layout.BASIC)
-                        draw.text((font_coords[0], font_coords[1]), text, fill=fill, font=font, anchor="lt")
-                        img.save(os.path.join(result_dir, text, f"{digit}_{font_name}.jpg"))
-                    except Exception as error:
-                        print(f"!!! Failed to draw {font} ({font_path}) !!! \n{error}")
-                        total_fonts -= 1 # Assumes we aren't able to draw any digits and easier than skipping the incriment
-                        break
+                        background = "black"
+                        # 8 bit grayscale https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes
+                        img = Image.new(mode='L', size=(28, 28), color=background)
+                        draw = ImageDraw.Draw(img)
+                        try:
+                            text = str(digit)
+                            font_vector = find_font_vector(font_path, text)
+                            font_size = font_vector[0]
+                            font_coords = font_vector[1]
+                            font = ImageFont.truetype(font=font_path, size=font_size, layout_engine=ImageFont.Layout.BASIC)
+                            draw.text((font_coords[0], font_coords[1]), text, fill=fill, font=font, anchor="lt")
+                            img.save(os.path.join(result_dir, text, f"{font_name}.jpg"))
+                        except Exception as error:
+                            print(f"!!! Failed to draw {font} ({font_path}) !!! \n{error}")
+                            total_fonts -= 1 # Assumes we aren't able to draw any digits and easier than skipping the incriment
+                            break
 
-                total_fonts += 1
+                    total_fonts += 1
 
     print()
     print(f"Total fonts: {total_fonts}")
