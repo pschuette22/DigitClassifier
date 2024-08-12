@@ -55,9 +55,78 @@ def convert_keras_to_mlmodel(keras_model_url, mlmodel_url):
     )
     mlmodel.save(mlmodel_url)
 
+def load_mnist_data():
+    # Model / data parameters
+    num_classes = 10
+
+    # Load the data and split it between train and test sets
+    (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+
+    # Scale images to the [0, 1] range
+    x_train = x_train.astype("float32") / 255
+    x_test = x_test.astype("float32") / 255
+    # Make sure images have shape (28, 28, 1)
+    x_train = np.expand_dims(x_train, -1)
+    x_test = np.expand_dims(x_test, -1)
+    print("x_train shape:", x_train.shape)
+    print(x_train.shape[0], "train samples")
+    print(x_test.shape[0], "test samples")
+
+
+    # convert class vectors to binary class matrices
+    y_train = to_categorical(y_train, num_classes)
+    y_test = to_categorical(y_test, num_classes)
+    return (x_train, y_train, x_test, y_test)
+
+
+def build_font_dataset():
+    # Import font data
+    font_training_data = 'dataset/fonts/train'
+    font_test_dataset = 'dataset/fonts/test'
+
+    # Load the dataset from the fonts directory
+    fonts_train_dataset = image_dataset_from_directory(
+        font_training_data,
+        labels='inferred',
+        label_mode='categorical',
+        color_mode='grayscale',
+        batch_size=32,
+        image_size=(28, 28),
+        shuffle=False
+    )
+    fonts_train_dataset.shuffle(123, reshuffle_each_iteration=True)
+
+    fonts_test_dataset = image_dataset_from_directory(
+        font_test_dataset,
+        labels='inferred',
+        label_mode='categorical',
+        color_mode='grayscale',
+        batch_size=32,
+        image_size=(28, 28),
+        shuffle=False
+    )
+    fonts_test_dataset.shuffle(123, reshuffle_each_iteration=True)
+
+    # Normalize the images to the [0, 1] range
+    normalization_layer = tf.keras.layers.Rescaling(1./255)
+    fonts_train_dataset = fonts_train_dataset.map(lambda x, y: (normalization_layer(x), y))
+    fonts_test_dataset = fonts_test_dataset.map(lambda x, y: (normalization_layer(x), y))
+
+    # Split to format model fitting
+    x_train_fonts = np.concatenate([x for x, y in fonts_train_dataset])
+    y_train_fonts = np.concatenate([y for x, y in fonts_train_dataset])
+    y_train_fonts.astype(np.uint8)
+
+    x_test_fonts = np.concatenate([x for x, y in fonts_test_dataset])
+    y_test_fonts = np.concatenate([y for x, y in fonts_test_dataset])
+    y_test_fonts.astype(np.uint8)
+    return (x_train_fonts, y_train_fonts, x_test_fonts, y_test_fonts)
+
+
 def build_keras_model():
     keras.backend.clear_session()
     model = keras.Sequential()
+    input_shape = (28, 28, 1)
     model.add(layers.Input(shape=input_shape))
     model.add(layers.Conv2D(32, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
@@ -75,77 +144,27 @@ def build_keras_model():
     model.summary()
     return model
 
-
-# Model / data parameters
-num_classes = 10
-input_shape = (28, 28, 1)
-
-# Load the data and split it between train and test sets
-(x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
-
-# Scale images to the [0, 1] range
-x_train = x_train.astype("float32") / 255
-x_test = x_test.astype("float32") / 255
-# Make sure images have shape (28, 28, 1)
-x_train = np.expand_dims(x_train, -1)
-x_test = np.expand_dims(x_test, -1)
-print("x_train shape:", x_train.shape)
-print(x_train.shape[0], "train samples")
-print(x_test.shape[0], "test samples")
-
-
-# convert class vectors to binary class matrices
-y_train = to_categorical(y_train, num_classes)
-y_test = to_categorical(y_test, num_classes)
-
-# Import font data
-font_training_data = 'dataset/fonts/train'
-font_test_dataset = 'dataset/fonts/test'
-
-# Load the dataset from the fonts directory
-fonts_train_dataset = image_dataset_from_directory(
-    font_training_data,
-    labels='inferred',
-    label_mode='categorical',
-    color_mode='grayscale',
-    batch_size=32,
-    image_size=(28, 28),
-    shuffle=False
-)
-fonts_train_dataset.shuffle(123, reshuffle_each_iteration=True)
-
-fonts_test_dataset = image_dataset_from_directory(
-    font_test_dataset,
-    labels='inferred',
-    label_mode='categorical',
-    color_mode='grayscale',
-    batch_size=32,
-    image_size=(28, 28),
-    shuffle=False
-)
-fonts_test_dataset.shuffle(123, reshuffle_each_iteration=True)
-
-# Normalize the images to the [0, 1] range
-normalization_layer = tf.keras.layers.Rescaling(1./255)
-fonts_train_dataset = fonts_train_dataset.map(lambda x, y: (normalization_layer(x), y))
-fonts_test_dataset = fonts_test_dataset.map(lambda x, y: (normalization_layer(x), y))
-
-# Split to format model fitting
-x_train_fonts = np.concatenate([x for x, y in fonts_train_dataset])
-y_train_fonts = np.concatenate([y for x, y in fonts_train_dataset])
-y_train_fonts.astype(np.uint8)
-
-x_test_fonts = np.concatenate([x for x, y in fonts_test_dataset])
-y_test_fonts = np.concatenate([y for x, y in fonts_test_dataset])
-y_test_fonts.astype(np.uint8)
+#
+# Create Datasets
+#
+(x_train, y_train, x_test, y_test) = load_mnist_data()
+(x_train_fonts, y_train_fonts, x_test_fonts, y_test_fonts) = build_font_dataset()
+# Combine MNIST and font datasets
+x_train_combined = np.concatenate((x_train, x_train_fonts), axis=0)
+y_train_combined = np.concatenate((y_train, y_train_fonts), axis=0)
+x_test_combined = np.concatenate((x_test, x_test_fonts), axis=0)
+y_test_combined = np.concatenate((y_test, y_test_fonts), axis=0)
 
 print("MNIST data example")
 print_digit_representation(x_train[0])
 print(y_train[0])
 
+
+#
+# Train the Keras MNIST model
+#
 batch_size = 32
 epochs = 5
-
 basic_model = build_keras_model()
 
 basic_model.fit(
@@ -153,9 +172,10 @@ basic_model.fit(
 )
 
 mnist_score = basic_model.evaluate(x_test, y_test, verbose=0)
+font_score = basic_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
+
 print("MNIST Test loss:", mnist_score[0])
 print("MNIST Test accuracy:", mnist_score[1])
-font_score = basic_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
 print("Font Test loss:", font_score[0])
 print("Font Test accuracy:", font_score[1])
 
@@ -167,34 +187,20 @@ basic_model.save(basic_model_path)
 digit_classifier_path = ensure_unique('product/DigitClassifier.mlmodel')
 convert_keras_to_mlmodel(basic_model_path, digit_classifier_path)
 
-class_weight = {0: 1.,
-                1: 1.,
-                2: 1.,
-                3: 1.,
-                4: 1.,
-                5: 1.,
-                6: 1.,
-                7: 1.,
-                8: 1.,
-                9: 10.}
-
-# Tune to font dataset
+#
+# Train the optimized model
+#
 tuned_model = build_keras_model()
-
-# Combine MNIST and font datasets
-x_train_combined = np.concatenate((x_train, x_train_fonts), axis=0)
-y_train_combined = np.concatenate((y_train, y_train_fonts), axis=0)
-# x_test_combined = np.concatenate((x_test, x_test_fonts), axis=0)
-# y_test_combined = np.concatenate((y_test, y_test_fonts), axis=0)
 
 tuned_model.fit(
     x_train_combined, y_train_combined, batch_size=batch_size, epochs=epochs, validation_split=0.1
 )
 
 mnist_score = tuned_model.evaluate(x_test, y_test, verbose=0)
+font_score = tuned_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
+
 print("MNIST Test loss:", mnist_score[0])
 print("MNIST Test accuracy:", mnist_score[1])
-font_score = tuned_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
 print("Font Test loss:", font_score[0])
 print("Font Test accuracy:", font_score[1])
 
