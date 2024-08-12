@@ -5,8 +5,8 @@ from pathlib import Path
 import numpy as np
 
 apple_model = ct.models.MLModel('MNISTClassifier.mlmodel')
-basic_model = ct.models.MLModel('product/DigitClassifier53.mlmodel')
-tuned_model = ct.models.MLModel('product/TunedDigitClassifier51.mlmodel')
+basic_model = ct.models.MLModel('product/DigitClassifier10.mlmodel')
+tuned_model = ct.models.MLModel('product/TunedDigitClassifier10.mlmodel')
 font_images = 'dataset/fonts'
 
 def font_digit(file_path) -> int:
@@ -57,7 +57,7 @@ for root, dir, files in os.walk(font_images):
 
         if model_misses == 3:
             if actual_digit == 9:
-                # Bias towards 9 confusion - this seems to cause a lot of confusion
+                # Bias towards 9 confusion - this digit in particular causes issues
                 confusion_font = font_family(file_path)
                 exclusion_fonts.add(confusion_font)
             else:
