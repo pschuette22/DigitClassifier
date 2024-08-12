@@ -5,6 +5,7 @@ from keras import layers
 from keras.utils import to_categorical
 import tensorflow as tf
 from tensorflow.keras.preprocessing import image_dataset_from_directory
+from sklearn.utils import shuffle
 
 def print_digit_representation(representation):
     """Prints a visual representation of the the 28x28 float array representing the digit for manual inspection
@@ -100,7 +101,7 @@ def load_font_data():
         image_size=(28, 28),
         shuffle=False
     )
-    fonts_train_dataset.shuffle(123, reshuffle_each_iteration=True)
+    fonts_train_dataset.shuffle(123, reshuffle_each_iteration=False)
 
     fonts_test_dataset = image_dataset_from_directory(
         font_test_dataset,
@@ -111,7 +112,7 @@ def load_font_data():
         image_size=(28, 28),
         shuffle=False
     )
-    fonts_test_dataset.shuffle(123, reshuffle_each_iteration=True)
+    fonts_test_dataset.shuffle(123, reshuffle_each_iteration=False)
 
     # Normalize the images to the [0, 1] range
     normalization_layer = tf.keras.layers.Rescaling(1./255)
@@ -132,17 +133,20 @@ def load_font_data():
 def build_keras_model():
     """Builds a simple Keras model for the MNIST dataset
     """
+
+    input_shape = (28, 28, 1)
+
     keras.backend.clear_session()
     model = keras.Sequential()
-    input_shape = (28, 28, 1)
     model.add(layers.Input(shape=input_shape))
-    model.add(layers.Conv2D(64, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
-    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.Conv2D(32, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.Dropout(0.25))
     model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
     model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     model.add(layers.Flatten())
-    model.add(layers.Dense(100, activation='relu'))
+    model.add(layers.Dense(128, activation='relu'))
     model.add(layers.Dense(10, activation='softmax'))
 
     model.compile(loss=keras.losses.categorical_crossentropy,
@@ -164,19 +168,22 @@ def train_models():
     # Combine MNIST and font datasets
     x_train_combined = np.concatenate((x_train, x_train_fonts), axis=0)
     y_train_combined = np.concatenate((y_train, y_train_fonts), axis=0)
+    x_train_combined, y_train_combined = shuffle(x_train_combined, y_train_combined, random_state=0)
+
     x_test_combined = np.concatenate((x_test, x_test_fonts), axis=0)
     y_test_combined = np.concatenate((y_test, y_test_fonts), axis=0)
 
     print("MNIST data example")
-    print_digit_representation(x_train[0])
-    print(y_train[0])
+    random_index = np.random.randint(0, x_train.shape[0])
+    print_digit_representation(x_train[random_index])
+    print(y_train[random_index])
 
 
     #
     # Train the Keras MNIST model
     #
-    batch_size = 128
-    epochs = 5
+    batch_size = 32
+    epochs = 4
     basic_model = build_keras_model()
 
     basic_model.fit(
@@ -204,8 +211,30 @@ def train_models():
     #
     tuned_model = build_keras_model()
 
+    # class_weight = {0: 5, 
+    #                 1: 5, 
+    #                 2: 5,
+    #                 3: 5, 
+    #                 4: 5, 
+    #                 5: 5, 
+    #                 6: 5, 
+    #                 7: 5, 
+    #                 8: 7, 
+    #                 9: 8}
+
+    print("Combined data example")
+    random_index = np.random.randint(0, x_train_combined.shape[0])
+    print_digit_representation(x_train_combined[random_index])
+    print(y_train_combined[random_index])
+
     tuned_model.fit(
-        x_train_combined, y_train_combined, batch_size=batch_size, epochs=epochs, validation_split=0.1
+        x_train_combined, 
+        y_train_combined, 
+        batch_size=batch_size,
+        epochs=epochs, 
+        validation_split=0.1, 
+        #class_weight=class_weight,
+        validation_freq=1
     )
 
     mnist_score = tuned_model.evaluate(x_test, y_test, verbose=0)
