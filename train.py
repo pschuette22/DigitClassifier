@@ -7,6 +7,8 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing import image_dataset_from_directory
 
 def print_digit_representation(representation):
+    """Prints a visual representation of the the 28x28 float array representing the digit for manual inspection
+    """
     for x in representation:
         row = ""
         for y in x:
@@ -56,6 +58,8 @@ def convert_keras_to_mlmodel(keras_model_url, mlmodel_url):
     mlmodel.save(mlmodel_url)
 
 def load_mnist_data():
+    """Loads the MNIST dataset and returns the train and test sets
+    """
     # Model / data parameters
     num_classes = 10
 
@@ -79,7 +83,9 @@ def load_mnist_data():
     return (x_train, y_train, x_test, y_test)
 
 
-def build_font_dataset():
+def load_font_data():
+    """Loads the font dataset and returns the train and test sets
+    """
     # Import font data
     font_training_data = 'dataset/fonts/train'
     font_test_dataset = 'dataset/fonts/test'
@@ -124,11 +130,13 @@ def build_font_dataset():
 
 
 def build_keras_model():
+    """Builds a simple Keras model for the MNIST dataset
+    """
     keras.backend.clear_session()
     model = keras.Sequential()
     input_shape = (28, 28, 1)
     model.add(layers.Input(shape=input_shape))
-    model.add(layers.Conv2D(32, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
+    model.add(layers.Conv2D(64, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
     model.add(layers.MaxPooling2D(pool_size=(2, 2)))
     model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
     model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform'))
@@ -144,70 +152,79 @@ def build_keras_model():
     model.summary()
     return model
 
+
+def train_models():
+    """Trains the digit classifier models and save them
+    """
+    #
+    # Create Datasets
+    #
+    (x_train, y_train, x_test, y_test) = load_mnist_data()
+    (x_train_fonts, y_train_fonts, x_test_fonts, y_test_fonts) = load_font_data()
+    # Combine MNIST and font datasets
+    x_train_combined = np.concatenate((x_train, x_train_fonts), axis=0)
+    y_train_combined = np.concatenate((y_train, y_train_fonts), axis=0)
+    x_test_combined = np.concatenate((x_test, x_test_fonts), axis=0)
+    y_test_combined = np.concatenate((y_test, y_test_fonts), axis=0)
+
+    print("MNIST data example")
+    print_digit_representation(x_train[0])
+    print(y_train[0])
+
+
+    #
+    # Train the Keras MNIST model
+    #
+    batch_size = 128
+    epochs = 5
+    basic_model = build_keras_model()
+
+    basic_model.fit(
+        x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1
+    )
+
+    mnist_score = basic_model.evaluate(x_test, y_test, verbose=0)
+    font_score = basic_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
+
+    print("MNIST Test loss:", mnist_score[0])
+    print("MNIST Test accuracy:", mnist_score[1])
+    print("Font Test loss:", font_score[0])
+    print("Font Test accuracy:", font_score[1])
+
+    basic_model.summary()
+
+    # Save the model
+    basic_model_path = ensure_unique('product/mnist_model.h5')
+    basic_model.save(basic_model_path)
+    digit_classifier_path = ensure_unique('product/DigitClassifier.mlmodel')
+    convert_keras_to_mlmodel(basic_model_path, digit_classifier_path)
+
+    #
+    # Train the optimized model
+    #
+    tuned_model = build_keras_model()
+
+    tuned_model.fit(
+        x_train_combined, y_train_combined, batch_size=batch_size, epochs=epochs, validation_split=0.1
+    )
+
+    mnist_score = tuned_model.evaluate(x_test, y_test, verbose=0)
+    font_score = tuned_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
+
+    print("MNIST Test loss:", mnist_score[0])
+    print("MNIST Test accuracy:", mnist_score[1])
+    print("Font Test loss:", font_score[0])
+    print("Font Test accuracy:", font_score[1])
+
+    tuned_model.summary()
+
+    # Save the model
+    tuned_keras_model_path = ensure_unique('product/tuned_mnist_model.h5')
+    tuned_model.save(tuned_keras_model_path)
+    tuned_digit_classifier_path = ensure_unique('product/TunedDigitClassifier.mlmodel')
+    convert_keras_to_mlmodel(tuned_keras_model_path, tuned_digit_classifier_path)
+
 #
-# Create Datasets
+# Run the program
 #
-(x_train, y_train, x_test, y_test) = load_mnist_data()
-(x_train_fonts, y_train_fonts, x_test_fonts, y_test_fonts) = build_font_dataset()
-# Combine MNIST and font datasets
-x_train_combined = np.concatenate((x_train, x_train_fonts), axis=0)
-y_train_combined = np.concatenate((y_train, y_train_fonts), axis=0)
-x_test_combined = np.concatenate((x_test, x_test_fonts), axis=0)
-y_test_combined = np.concatenate((y_test, y_test_fonts), axis=0)
-
-print("MNIST data example")
-print_digit_representation(x_train[0])
-print(y_train[0])
-
-
-#
-# Train the Keras MNIST model
-#
-batch_size = 32
-epochs = 5
-basic_model = build_keras_model()
-
-basic_model.fit(
-    x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1
-)
-
-mnist_score = basic_model.evaluate(x_test, y_test, verbose=0)
-font_score = basic_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
-
-print("MNIST Test loss:", mnist_score[0])
-print("MNIST Test accuracy:", mnist_score[1])
-print("Font Test loss:", font_score[0])
-print("Font Test accuracy:", font_score[1])
-
-basic_model.summary()
-
-# Save the model
-basic_model_path = ensure_unique('product/mnist_model.h5')
-basic_model.save(basic_model_path)
-digit_classifier_path = ensure_unique('product/DigitClassifier.mlmodel')
-convert_keras_to_mlmodel(basic_model_path, digit_classifier_path)
-
-#
-# Train the optimized model
-#
-tuned_model = build_keras_model()
-
-tuned_model.fit(
-    x_train_combined, y_train_combined, batch_size=batch_size, epochs=epochs, validation_split=0.1
-)
-
-mnist_score = tuned_model.evaluate(x_test, y_test, verbose=0)
-font_score = tuned_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
-
-print("MNIST Test loss:", mnist_score[0])
-print("MNIST Test accuracy:", mnist_score[1])
-print("Font Test loss:", font_score[0])
-print("Font Test accuracy:", font_score[1])
-
-tuned_model.summary()
-
-# Save the model
-tuned_keras_model_path = ensure_unique('product/tuned_mnist_model.h5')
-tuned_model.save(tuned_keras_model_path)
-tuned_digit_classifier_path = ensure_unique('product/TunedDigitClassifier.mlmodel')
-convert_keras_to_mlmodel(tuned_keras_model_path, tuned_digit_classifier_path)
+train_models()
