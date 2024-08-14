@@ -192,11 +192,17 @@ def train_models():
 
     mnist_score = basic_model.evaluate(x_test, y_test, verbose=0)
     font_score = basic_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
+    combined_score = basic_model.evaluate(x_test_combined, y_test_combined, verbose=0)
 
+    print()
+    print(" == Basic Model Evaluation == ")
+    print()
     print("MNIST Test loss:", mnist_score[0])
     print("MNIST Test accuracy:", mnist_score[1])
     print("Font Test loss:", font_score[0])
     print("Font Test accuracy:", font_score[1])
+    print("Combined Test loss:", combined_score[0])
+    print("Combined Test accuracy:", combined_score[1])
 
     basic_model.summary()
 
@@ -211,17 +217,6 @@ def train_models():
     #
     tuned_model = build_keras_model()
 
-    # class_weight = {0: 5, 
-    #                 1: 5, 
-    #                 2: 5,
-    #                 3: 5, 
-    #                 4: 5, 
-    #                 5: 5, 
-    #                 6: 5, 
-    #                 7: 5, 
-    #                 8: 7, 
-    #                 9: 8}
-
     print("Combined data example")
     random_index = np.random.randint(0, x_train_combined.shape[0])
     print_digit_representation(x_train_combined[random_index])
@@ -232,18 +227,22 @@ def train_models():
         y_train_combined, 
         batch_size=batch_size,
         epochs=epochs, 
-        validation_split=0.1, 
-        #class_weight=class_weight,
-        validation_freq=1
+        validation_split=0.1
     )
 
     mnist_score = tuned_model.evaluate(x_test, y_test, verbose=0)
     font_score = tuned_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
+    combined_score = basic_model.evaluate(x_test_combined, y_test_combined, verbose=0)
 
+    print()
+    print(" == Tuned Model Evaluation == ")
+    print()
     print("MNIST Test loss:", mnist_score[0])
     print("MNIST Test accuracy:", mnist_score[1])
     print("Font Test loss:", font_score[0])
     print("Font Test accuracy:", font_score[1])
+    print("Combined Test loss:", combined_score[0])
+    print("Combined Test accuracy:", combined_score[1])
 
     tuned_model.summary()
 

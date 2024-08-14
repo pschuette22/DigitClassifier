@@ -28,14 +28,14 @@ def load_ignore_ruleset():
             # Ignore comments and empty strings
             if stripped.startswith("#") or len(stripped) == 0:
                 continue
-            print(f"adding ignore rule: {stripped}")
+            print(f"Ignoring fonts like: \"{stripped}\"")
             ignore_rules.append(stripped)
     return ignore_rules
 
 def ignore_font(font_name, ignore_rules):
     for rule in ignore_rules:
         if font_name.count(rule) > 0:
-            print(f"ignoring {font_name}")
+            print(f"Ignoring font {font_name}")
             return True
     return False
 

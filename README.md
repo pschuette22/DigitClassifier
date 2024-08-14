@@ -1,19 +1,17 @@
 # DigitClassifier
-Use Google fonts to generate a digit classifying dataset for CoreML
-
+Use font files to augment the MNIST Dataset and to train a classifier better suited for printed fonts.
 
 ## Setup
-[Image Magick](https://imagemagick.org/)
-```
-brew install imagemagick
-```
+### Install Fonts
+Download a variety of fonts (the more the better!) from [Google Fonts](https://fonts.google.com/) or from the [Google Fonts Github Project](https://github.com/google/fonts) and add them to the `fonts/` folder.
 
-Download a variety of fonts (the more the better!) from [Google Fonts](https://fonts.google.com/) and add them to the `fonts/` folder
+Additionally, installing fonts using [fnt](https://github.com/alexmyczko/fnt) will add more training data.
 
-## Run it
-Run the generate script and supply it two parameters: lower and upper bound.
-This was originally created to build a digit classifier for a Sudoku project, so the 0 was omitted.
+### Setup the project environment
+
+Download and setup [miniconda](https://docs.anaconda.com/miniconda/)
 
 ```
-./generate.sh 1 9
+re
+pip install -r requirements.txt
 ```

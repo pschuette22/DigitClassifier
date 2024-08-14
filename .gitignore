@@ -5,5 +5,7 @@
 output/
 dataset/**
 fonts/
-
 product/
+
+# Ignore jupyter checkpoints
+.ipynb_checkpoints/
