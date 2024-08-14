@@ -62,7 +62,7 @@ def find_font_vector(font_path, text):
         # assuming font glyphs have a greater width than height
         if height > 21 or width > 21:
             font_size -= 2
-        elif height < 16 and width < 16:
+        elif height < 18 and width < 18:
             font_size += 2
         else:
             x = ((28 - width) // 2)
@@ -71,9 +71,6 @@ def find_font_vector(font_path, text):
     return (font_size, (x,y))
 
 def main(fonts_path, start_digit, end_digit):
-    print("build from fonts at: ", fonts_path)
-    print("lower bound digit: ", start_digit)
-    print("upper bound digit: ", end_digit)
     working_dir = os.getcwd()
     output_dir = os.path.join(working_dir, 'dataset/fonts')
 
