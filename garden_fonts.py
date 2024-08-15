@@ -22,7 +22,7 @@ def garden_fonts(apple_model, basic_model, tuned_model):
     """Identify the fonts that may be so unique they are not valuable training data."""
     font_images = 'dataset/fonts'
     # Maintian a count of correctly identified images
-    models = [("Apple", 'image', apple_model), ("Basic", 'input_1', basic_model), ("Tuned", 'input_1', tuned_model)]
+    models = [("Apple", apple_model), ("Basic", basic_model), ("Tuned", tuned_model)]
     hits = np.repeat(0, 3)
     images = 0
     # Iterate over the files in the folder
@@ -43,7 +43,7 @@ def garden_fonts(apple_model, basic_model, tuned_model):
             model_misses = 0
             for model in models:
                 # Make a prediction
-                prediction = model[2].predict({model[1]: image})
+                prediction = model[1].predict({'image': image})
                 digit = int(prediction['classLabel'])
                 confidence = 0
                 if model[0] == "Apple":
@@ -88,7 +88,7 @@ def garden_fonts(apple_model, basic_model, tuned_model):
             exclusion_fonts.add(missed_font)
 
     for missed_font in missed_fonts:
-        if missed_fonts[missed_font] >= 15: # 50% miss with this font
+        if missed_fonts[missed_font] >= 12: # 40% miss with this font
             exclusion_fonts.add(missed_font)
 
     print(f"Total exclusion fonts: {len(exclusion_fonts)}")
@@ -103,7 +103,7 @@ def garden_fonts(apple_model, basic_model, tuned_model):
     file.close()
 
 apple_model = ct.models.MLModel('MNISTClassifier.mlmodel')
-basic_model = ct.models.MLModel('product/DigitClassifier.mlmodel')
-tuned_model = ct.models.MLModel('product/TunedDigitClassifier.mlmodel')
+basic_model = ct.models.MLModel('product/DigitClassifier3.mlmodel')
+tuned_model = ct.models.MLModel('product/TunedDigitClassifier3.mlmodel')
 
 garden_fonts(apple_model, basic_model, tuned_model)

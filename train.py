@@ -56,6 +56,11 @@ def convert_keras_to_mlmodel(keras_model_url, mlmodel_url):
         inputs=[ct.ImageType(shape=(1, 28, 28, 1), color_layout=ct.colorlayout.GRAYSCALE)],
         classifier_config=classifier_config
     )
+    spec = mlmodel.get_spec()
+    input = spec.description.input[0]
+    input.name = 'image'
+    input.shortDescription = 'Grayscale image with black background of a digit.'
+    mlmodel = ct.models.MLModel(spec)
     mlmodel.save(mlmodel_url)
 
 def load_mnist_data():
@@ -138,7 +143,7 @@ def build_keras_model():
 
     keras.backend.clear_session()
     model = keras.Sequential()
-    model.add(layers.Input(shape=input_shape))
+    model.add(layers.Input(shape=input_shape, name='image'))
     model.add(layers.Conv2D(32, kernel_size=(3, 3), activation='relu', kernel_initializer='he_uniform'))
     model.add(layers.BatchNormalization())
     model.add(layers.Dropout(0.25))
@@ -232,7 +237,7 @@ def train_models():
 
     mnist_score = tuned_model.evaluate(x_test, y_test, verbose=0)
     font_score = tuned_model.evaluate(x_test_fonts, y_test_fonts, verbose=0)
-    combined_score = basic_model.evaluate(x_test_combined, y_test_combined, verbose=0)
+    combined_score = tuned_model.evaluate(x_test_combined, y_test_combined, verbose=0)
 
     print()
     print(" == Tuned Model Evaluation == ")
