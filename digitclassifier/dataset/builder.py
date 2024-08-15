@@ -6,6 +6,9 @@ from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 from fontTools.ttLib import TTFont
 
+# TODO: consider a trie or an otherwise better datastructure
+# Maybe a yml with rules and fonts separated to initialize a model
+
 def contains_digit(font_path, digit):
     try:
         font = TTFont(font_path)
@@ -123,7 +126,7 @@ def build_dataset(fonts_path):
                     print(f"{total_fonts}: Processing font {font_name}")
                     fill = "white"
 
-                    for digit in range(0, 0):
+                    for digit in range(0, 10):
                         if not contains_digit(font_path, digit):
                             continue
 

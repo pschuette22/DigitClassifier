@@ -20,8 +20,17 @@ Create the conda environment, activate, install the requirements, and start the 
 conda create -n classifier-env python=3.11 pip
 conda activate classifier-env
 pip install -r requirements.txt
-jupyter activate
 ```
 
-### Juypter
-Open `evaluate.ipbny` in the Juypter notebook and run the program from there.
+## Prepare the Dataset
+The first step is to prepare the dataset from a set of fonts. Do this by running the build dataset python script over the fonts added to the `fonts` directory
+
+The `build_dataset` python script will load the exclusion rules from the `dataset/ignored.txt` file and then iterate over all the font files under the passed directory as well as installed system fonts.
+Font files containing a valid glyph and not matching rules found in the ignored.text file will be added to the dataset.
+
+```
+python build_dataset.py fonts/
+```
+
+<img src="resources/Classifier-BuildDataset.gif" height="300"/>
+

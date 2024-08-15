@@ -3,6 +3,7 @@ import coremltools as ct
 from PIL import Image
 from pathlib import Path
 import numpy as np
+import argparse
 
 
 def font_digit(file_path) -> int:
@@ -18,11 +19,11 @@ def print_array_line_by_line(arr):
     for element in arr:
         print(element)
 
-def garden_fonts(apple_model, basic_model, tuned_model):
+def garden_fonts(models): # (apple_model, basic_model, tuned_model):
     """Identify the fonts that may be so unique they are not valuable training data."""
     font_images = 'dataset/fonts'
     # Maintian a count of correctly identified images
-    models = [("Apple", apple_model), ("Basic", basic_model), ("Tuned", tuned_model)]
+    # models = [("Apple", apple_model), ("Basic", basic_model), ("Tuned", tuned_model)]
     hits = np.repeat(0, 3)
     images = 0
     # Iterate over the files in the folder
@@ -59,7 +60,10 @@ def garden_fonts(apple_model, basic_model, tuned_model):
                     model_misses += 1
                     missed_fonts[font_family(file_path)] = missed_fonts.get(font_family(file_path), 0) + 1
 
-            if model_misses == 3:
+            #
+            # If all models missed, we have a universal miss
+            #
+            if model_misses == len(models):
                 if actual_digit == 9:
                     # Bias towards 9 confusion - this digit in particular causes issues
                     confusion_font = font_family(file_path)
@@ -107,3 +111,12 @@ basic_model = ct.models.MLModel('product/DigitClassifier3.mlmodel')
 tuned_model = ct.models.MLModel('product/TunedDigitClassifier3.mlmodel')
 
 garden_fonts(apple_model, basic_model, tuned_model)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Process path to a directory containing font files')
+    parser.add_argument('directory', type=str, help='The path to the google fonts project directory')
+    args = parser.parse_args()
+    if os.path.isdir(args.directory):
+        build_dataset(args.directory)
+    else:
+        raise FileNotFoundError(f"The directory ${args.directory} doesnt exist: pass a valid path to the google fonts repository.")

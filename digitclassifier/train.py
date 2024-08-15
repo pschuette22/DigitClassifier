@@ -260,4 +260,6 @@ def train_models():
 #
 # Run the program
 #
-train_models()
+
+if __name__ == "__main__":
+    train_models()

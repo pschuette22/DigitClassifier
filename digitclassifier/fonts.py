@@ -1,10 +1,22 @@
 import os
 import argparse
-import zipfile
 import random
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 from fontTools.ttLib import TTFont
+
+def font_digit(file_path) -> int:
+    """Return the degit depicted in an image given it's path."""
+    return int(file_path.split('/')[-2])
+
+def font_family(file_path) -> str:
+    """Return the font family of an image given it's path."""
+    return Path(file_path).stem
+
+# TODO: garden with a set of models
+
+# TODO: consider a trie or an otherwise better datastructure
+# Maybe a yml with rules and fonts separated to initialize a model
 
 def contains_digit(font_path, digit):
     try:
@@ -123,7 +135,7 @@ def build_dataset(fonts_path):
                     print(f"{total_fonts}: Processing font {font_name}")
                     fill = "white"
 
-                    for digit in range(0, 0):
+                    for digit in range(0, 10):
                         if not contains_digit(font_path, digit):
                             continue
 
