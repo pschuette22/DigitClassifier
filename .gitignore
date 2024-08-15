@@ -7,5 +7,6 @@ dataset/**
 fonts/
 product/
 
-# Ignore jupyter checkpoints
+# Jupyter
 .ipynb_checkpoints/
+__pycache__/

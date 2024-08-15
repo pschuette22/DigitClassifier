@@ -12,7 +12,7 @@ Additionally, installing fonts using [fnt](https://github.com/alexmyczko/fnt) wi
 ### Create environment
 Download and install [miniconda](https://docs.anaconda.com/miniconda/).
 
-Setup the environment. Due to framework conflicts, I recommend using these provided requirements document.
+Setup the environment. Due to framework conflicts, I recommend using these provided `requirements.txt` and python 3.11.
 
 Create the conda environment, activate, install the requirements, and start the notebook.
 
@@ -24,4 +24,4 @@ jupyter activate
 ```
 
 ### Juypter
-Open `evaluate.ipbny` in the Juypter notebook and run the program from there. 
+Open `evaluate.ipbny` in the Juypter notebook and run the program from there.
