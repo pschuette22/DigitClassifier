@@ -70,7 +70,8 @@ def find_font_vector(font_path, text):
             break    
     return (font_size, (x,y))
 
-def main(fonts_path, start_digit, end_digit):
+
+def build_dataset(fonts_path):
     working_dir = os.getcwd()
     output_dir = os.path.join(working_dir, 'dataset/fonts')
 
@@ -79,6 +80,7 @@ def main(fonts_path, start_digit, end_digit):
     os.makedirs(output_dir, exist_ok=True)
 
     # Splits
+    # TODO: make these parameters
     train = 8
     train_fonts = 0
     test = 1
@@ -86,7 +88,7 @@ def main(fonts_path, start_digit, end_digit):
     validate = 1
     validate_fonts = 0
 
-    for digit in range(int(start_digit), int(end_digit) + 1):
+    for digit in range(0, 10):
         os.makedirs(os.path.join(output_dir, "train", str(digit)), exist_ok=True)
         os.makedirs(os.path.join(output_dir, "test", str(digit)), exist_ok=True)
         os.makedirs(os.path.join(output_dir, "validate", str(digit)), exist_ok=True)
@@ -124,7 +126,7 @@ def main(fonts_path, start_digit, end_digit):
                     print(f"{total_fonts}: Processing font {font_name}")
                     fill = "white"
 
-                    for digit in range(int(start_digit), int(end_digit) + 1):
+                    for digit in range(0, 0):
                         if not contains_digit(font_path, digit):
                             continue
 
@@ -154,12 +156,10 @@ def main(fonts_path, start_digit, end_digit):
     print(f"Validate fonts: {validate_fonts}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Process path to google fonts project, lower bound digit, and upper bound digit')
+    parser = argparse.ArgumentParser(description='Process path to a directory containing font files')
     parser.add_argument('directory', type=str, help='The path to the google fonts project directory')
-    parser.add_argument('lower', type=int, help='Lower digit bound')
-    parser.add_argument('upper', type=int, help='Upper digit bound')
     args = parser.parse_args()
     if os.path.isdir(args.directory):
-        main(args.directory, args.lower, args.upper)
+        build_dataset(args.directory)
     else:
         raise FileNotFoundError(f"The directory ${args.directory} doesnt exist: pass a valid path to the google fonts repository.")

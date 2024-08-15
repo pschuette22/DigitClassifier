@@ -9,7 +9,7 @@ Download a variety of fonts (the more the better!) from [Google Fonts](https://f
 
 Additionally, installing fonts using [fnt](https://github.com/alexmyczko/fnt) will add more training data.
 
-### Setup the project environment
+### Create environment
 Download and install [miniconda](https://docs.anaconda.com/miniconda/).
 
 Setup the environment. Due to framework conflicts, I recommend using these provided requirements document.
@@ -23,4 +23,5 @@ pip install -r requirements.txt
 jupyter activate
 ```
 
-Open `evaluate.ipbny` in the Juypter notebook run the program from there. 
+### Juypter
+Open `evaluate.ipbny` in the Juypter notebook and run the program from there. 
