@@ -1,6 +1,6 @@
 
 # Update the pip requirements file
-update_requirements:
+update-requirements:
 	pip freeze -l > requirements.txt
 
 font-dataset:
