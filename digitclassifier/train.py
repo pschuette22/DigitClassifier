@@ -257,6 +257,11 @@ def train_models():
     tuned_digit_classifier_path = ensure_unique('product/TunedDigitClassifier.mlmodel')
     convert_keras_to_mlmodel(tuned_keras_model_path, tuned_digit_classifier_path)
 
+    print()
+    print("Generated models:")
+    print(digit_classifier_path)
+    print(tuned_digit_classifier_path)
+
 #
 # Run the program
 #

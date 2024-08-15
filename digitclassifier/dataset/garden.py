@@ -21,10 +21,18 @@ def print_array_line_by_line(arr):
 
 def garden_fonts(models): # (apple_model, basic_model, tuned_model):
     """Identify the fonts that may be so unique they are not valuable training data."""
+
+    if len(models) < 3:
+        raise ValueError(f"Gardening requires at least 3 models for evaluation but only received {len(models)}.")
+    
+    print()
+    print("🧑‍🌾🧑‍🌾🧑‍🌾")
+    print("Gardening fonts in 'dataset/fonts'")
+    print("🧑‍🌾🧑‍🌾🧑‍🌾")
+    print()
     font_images = 'dataset/fonts'
     # Maintian a count of correctly identified images
-    # models = [("Apple", apple_model), ("Basic", basic_model), ("Tuned", tuned_model)]
-    hits = np.repeat(0, 3)
+    hits = np.repeat(0, len(models))
     images = 0
     # Iterate over the files in the folder
     exclusion_fonts = set()
@@ -47,14 +55,15 @@ def garden_fonts(models): # (apple_model, basic_model, tuned_model):
                 prediction = model[1].predict({'image': image})
                 digit = int(prediction['classLabel'])
                 confidence = 0
-                if model[0] == "Apple":
+                # MNISTClassifier output is defined in 'labelProbabilities'
+                if "labelProbabilities" in prediction:
                     confidence = prediction["labelProbabilities"][digit]
                 else:
+                    # Trained model output is defined in 'Identity'
                     confidence = prediction["Identity"][str(digit)]
                 # Check if the prediction is correct and we are confident in it
                 if digit == actual_digit and confidence > 0.3:
                     hits[models.index(model)] += 1
-                    # print(f"{model[0]} predicted {digit} correctly")
                 else:
                     print(f"{model[0]} predicted {digit} incorrectly ({file_path})")
                     model_misses += 1
@@ -66,17 +75,17 @@ def garden_fonts(models): # (apple_model, basic_model, tuned_model):
             if model_misses == len(models):
                 if actual_digit == 9:
                     # Bias towards 9 confusion - this digit in particular causes issues
-                    confusion_font = font_family(file_path)
-                    exclusion_fonts.add(confusion_font)
+                    exclusion_fonts.add(font_family(file_path))
                 else:
                     universal_miss_digits[actual_digit] += 1
                     universal_misses.append(file_path)
 
                 print(f"All models missed {file_path}")
 
-    print(f"Apple: {hits[0]} out of {images}: {hits[0] / images}")
-    print(f"Basic: {hits[1]} out of {images}: {hits[1] / images}")
-    print(f"Tuned: {hits[2]} out of {images}: {hits[2] / images}")
+    for model in models:
+        index=models.index(model)
+        print(f"{model[0]}: {hits[index]} out of {images}: {hits[index] / images}")
+
     print("-- Universal misses --")
     print(f"Total misses: {len(universal_misses)}")
     print_array_line_by_line(universal_misses)
@@ -90,9 +99,9 @@ def garden_fonts(models): # (apple_model, basic_model, tuned_model):
         font_family_counts[missed_font] = font_family_counts.get(missed_font, 0) + 1
         if font_family_counts[missed_font] >= 3: # All models missed on 3 digits
             exclusion_fonts.add(missed_font)
-
+    
     for missed_font in missed_fonts:
-        if missed_fonts[missed_font] >= 12: # 40% miss with this font
+        if missed_fonts[missed_font] >= (float(len(models)) * 10 * 0.4): # 40% miss with this font
             exclusion_fonts.add(missed_font)
 
     print(f"Total exclusion fonts: {len(exclusion_fonts)}")
@@ -106,17 +115,18 @@ def garden_fonts(models): # (apple_model, basic_model, tuned_model):
 
     file.close()
 
-apple_model = ct.models.MLModel('MNISTClassifier.mlmodel')
-basic_model = ct.models.MLModel('product/DigitClassifier3.mlmodel')
-tuned_model = ct.models.MLModel('product/TunedDigitClassifier3.mlmodel')
-
-garden_fonts(apple_model, basic_model, tuned_model)
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Process path to a directory containing font files')
-    parser.add_argument('directory', type=str, help='The path to the google fonts project directory')
+    parser = argparse.ArgumentParser(description='Process paths to mlmodel files and find concerning fonts.')
+    parser.add_argument('-m', '--models', nargs='+', type=str)
     args = parser.parse_args()
-    if os.path.isdir(args.directory):
-        build_dataset(args.directory)
-    else:
-        raise FileNotFoundError(f"The directory ${args.directory} doesnt exist: pass a valid path to the google fonts repository.")
+
+    models = []
+    for arg in args.models:
+        print(arg)
+        if os.path.isfile(arg) and arg.endswith('.mlmodel'):
+            model_name = Path(arg).stem
+            models.append((model_name, ct.models.MLModel(arg)))
+        else:
+            raise FileNotFoundError(f"The file {arg} is not a valid mlmodel file.")
+    
+    garden_fonts(models)

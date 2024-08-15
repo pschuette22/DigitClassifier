@@ -6,5 +6,8 @@ update_requirements:
 font-dataset:
 	python digitclassifier/dataset/builder.py fonts/
 
+garden-dataset:
+	python digitclassifier/dataset/garden.py
+
 models:
 	python digitclassifier/train.py

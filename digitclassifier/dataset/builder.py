@@ -1,13 +1,9 @@
 import os
 import argparse
-import zipfile
 import random
 from PIL import Image, ImageDraw, ImageFont
 from pathlib import Path
 from fontTools.ttLib import TTFont
-
-# TODO: consider a trie or an otherwise better datastructure
-# Maybe a yml with rules and fonts separated to initialize a model
 
 def contains_digit(font_path, digit):
     try:
