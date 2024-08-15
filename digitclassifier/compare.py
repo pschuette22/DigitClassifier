@@ -63,6 +63,5 @@ if __name__ == "__main__":
             models.append((model_name, ct.models.MLModel(arg)))
         else:
             raise FileNotFoundError(f"The file {arg} is not a valid mlmodel file.")
-    if len(models) <= 2:
-        raise ValueError("Please provide at least 2 models to compare.")
+
     compare(models)
