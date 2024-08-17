@@ -25,12 +25,30 @@ pip install -r requirements.txt
 ## Prepare the Dataset
 The first step is to prepare the dataset from a set of fonts. Do this by running the build dataset python script over the fonts added to the `fonts` directory
 
-The `build_dataset` python script will load the exclusion rules from the `dataset/ignored.txt` file and then iterate over all the font files under the passed directory as well as installed system fonts.
-Font files containing a valid glyph and not matching rules found in the ignored.text file will be added to the dataset.
+The `digitclassifier/dataset/builder.py` script will load the exclusion rules from the `dataset/ignored.txt` file and then iterate over all the font files under the passed directory as well as installed system fonts.
+Font files containing a valid glyph and not matching rules found in the `dataset/ignored.txt` file will be added to the output dataset.
 
 ```
-python build_dataset.py fonts/
+make font-dataset
 ```
 
-<img src="resources/Classifier-BuildDataset.gif" height="300"/>
+<img src="resources/Classifier-BuildDataset.gif" height="500"/>
 
+This creates the following output:
+```
+dataset/
+  fonts/
+    test/
+      0/
+        FontName.png
+        ...
+      9/
+        FontName.png
+    train/
+      ...
+    validate/
+      ...
+```
+
+## Train the Models
+Once the dataset is created, train the models using 
