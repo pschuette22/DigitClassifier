@@ -46,7 +46,7 @@ def compare(models):
     print()
     for model in models:
         index= models.index(model)
-        print(f"{model[0]}: {hits[index]} out of {images}: {hits[index] / images}")
+        print(f"{model[0]}: {hits[index]} out of {images} (", '{:.2%}'.format(hits[index] / images), ")")
     print()
 
 

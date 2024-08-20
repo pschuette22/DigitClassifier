@@ -26,9 +26,7 @@ def garden_fonts(models): # (apple_model, basic_model, tuned_model):
         raise ValueError(f"Gardening requires at least 3 models for evaluation but only received {len(models)}.")
     
     print()
-    print("🧑‍🌾🧑‍🌾🧑‍🌾")
-    print("Gardening fonts in 'dataset/fonts'")
-    print("🧑‍🌾🧑‍🌾🧑‍🌾")
+    print(" 🧑‍🌾🧑‍🌾🧑‍🌾 Gardening fonts in 'dataset/fonts' 🧑‍🌾🧑‍🌾🧑‍🌾 ")
     print()
     font_images = 'dataset/fonts'
     # Maintian a count of correctly identified images
@@ -84,7 +82,7 @@ def garden_fonts(models): # (apple_model, basic_model, tuned_model):
 
     for model in models:
         index=models.index(model)
-        print(f"{model[0]}: {hits[index]} out of {images}: {hits[index] / images}")
+        print(f"{model[0]}: {hits[index]} out of {images} (", '{:.2%}'.format(hits[index] / images), ")")
 
     print("-- Universal misses --")
     print(f"Total misses: {len(universal_misses)}")
@@ -104,16 +102,17 @@ def garden_fonts(models): # (apple_model, basic_model, tuned_model):
         if missed_fonts[missed_font] >= (float(len(models)) * 10 * 0.4): # 40% miss with this font
             exclusion_fonts.add(missed_font)
 
-    print(f"Total exclusion fonts: {len(exclusion_fonts)}")
-
     # Prune and write the universal misses to our exclusion file
     file = open('dataset/ignored.txt', mode='a')
     for excluded in exclusion_fonts:
         print(f"Writing {excluded} to ignore file")
         file.write('\n')
         file.write(excluded)
-
     file.close()
+
+    print()
+    print(f"Wrote {len(exclusion_fonts)} fonts to the dataset/ignored.txt file.")
+    print()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process paths to mlmodel files and find concerning fonts.')

@@ -22,7 +22,7 @@ def print_digit_representation(representation):
         print(row)
 
 def ensure_unique(file_path: str):
-    """Adds a unique index, to a filepath so ensure no overwrites
+    """Adds a unique index to a filepath so ensure no overwrites
     """
     from pathlib import Path
     unique_path = file_path
@@ -203,11 +203,11 @@ def train_models():
     print(" == Basic Model Evaluation == ")
     print()
     print("MNIST Test loss:", mnist_score[0])
-    print("MNIST Test accuracy:", mnist_score[1])
+    print("MNIST Test accuracy:", '{:.2%}'.format(mnist_score[1]))
     print("Font Test loss:", font_score[0])
-    print("Font Test accuracy:", font_score[1])
+    print("Font Test accuracy:", '{:.2%}'.format(font_score[1]))
     print("Combined Test loss:", combined_score[0])
-    print("Combined Test accuracy:", combined_score[1])
+    print("Combined Test accuracy:", '{:.2%}'.format(combined_score[1]))
 
     basic_model.summary()
 
@@ -243,13 +243,11 @@ def train_models():
     print(" == Tuned Model Evaluation == ")
     print()
     print("MNIST Test loss:", mnist_score[0])
-    print("MNIST Test accuracy:", mnist_score[1])
+    print("MNIST Test accuracy:", '{:.2%}'.format(mnist_score[1]))
     print("Font Test loss:", font_score[0])
-    print("Font Test accuracy:", font_score[1])
+    print("Font Test accuracy:", '{:.2%}'.format(font_score[1]))
     print("Combined Test loss:", combined_score[0])
-    print("Combined Test accuracy:", combined_score[1])
-
-    tuned_model.summary()
+    print("Combined Test accuracy:", '{:.2%}'.format(combined_score[1]))
 
     # Save the model
     tuned_keras_model_path = ensure_unique('product/tuned_mnist_model.h5')

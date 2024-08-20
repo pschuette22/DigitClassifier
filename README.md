@@ -12,8 +12,6 @@ Additionally, installing fonts using [fnt](https://github.com/alexmyczko/fnt) wi
 ### Create environment
 Download and install [miniconda](https://docs.anaconda.com/miniconda/).
 
-Setup the environment. Due to framework conflicts, I recommend using these provided `requirements.txt` and python 3.11.
-
 Create the conda environment, activate, install the requirements, and start the notebook.
 
 ```bash
@@ -31,7 +29,6 @@ Font files containing a valid glyph and not matching rules found in the `dataset
 ```
 make font-dataset
 ```
-
 <img src="resources/Classifier-BuildDataset.gif" height="500"/>
 
 This creates the following output:
@@ -51,4 +48,14 @@ dataset/
 ```
 
 ## Train the Models
-Once the dataset is created, train the models using 
+Once the dataset is created, train the models.
+```
+make models
+```
+
+
+
+## Comparing the Models
+
+
+## Gardening the fonts
