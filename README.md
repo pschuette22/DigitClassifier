@@ -58,14 +58,59 @@ If all Google and fnt fonts are used, this will produce 10 images of digits usin
 
 
 ## Train the Models
-Once the dataset is created, train the models.
+Once the dataset is created, train the models using the `make models` command. This command will download the MNIST dataset and train two models. One model will only use the MNIST dataset and another will augment it with the font file digits created in the previous step. Both will print their efficacy against the combined font dataset.
+
+
 ```
 make models
 ```
 
-
+TODO: Training gif
 
 ## Comparing the Models
+Once trained, the models can be compared against a set of images generated from font and set aside for comparision.
 
+The project comes with the MNIST Classifier found in [Apple's Model Garden](https://developer.apple.com/machine-learning/models/).
+
+```
+make compare \ 
+  MNISTClassifier.mlmodel \
+  product/DigitClassifier.mlmodel \
+  product/TunedDigitClassifier.mlmodel
+```
+
+TODO: Comparision output media
 
 ## Gardening the fonts
+
+Great! We've created a model that outperforms Apple's stock MNISTClassifier on printed fonts. _However_ some of the fonts we downloaded may not actually be practical representations of digits. For instance, the xmaslight font:
+
+<img src="resources/8_xmaslight.jpg" height=100/>
+
+To account for this, we can look for concensus between the three classifier models to find fonts all three consistently classify incorrectly.
+
+```
+make garden-dataset \ 
+  MNISTClassifier.mlmodel \
+  product/DigitClassifier.mlmodel \
+  product/TunedDigitClassifier.mlmodel
+```
+
+// TODO: gardening gif
+
+The gardening script will update the `dataset/ignored.txt` file with fonts that don't seem to be useful representations of printed fonts. 
+
+After gardening, we need to regenerated the font dataset and retrain the models.
+
+```
+make font-dataset
+...
+make models
+...
+make compare \ 
+  MNISTClassifier.mlmodel \
+  product/DigitClassifier1.mlmodel \
+  product/TunedDigitClassifier1.mlmodel
+```
+
+TODO: updated comparision results
