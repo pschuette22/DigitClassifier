@@ -60,12 +60,25 @@ If all Google and fnt fonts are used, this will produce 10 images of digits usin
 ## Train the Models
 Once the dataset is created, train the models using the `make models` command. This command will download the MNIST dataset and train two models. One model will only use the MNIST dataset and another will augment it with the font file digits created in the previous step. Both will print their efficacy against the combined font dataset.
 
-
 ```
 make models
 ```
 
-TODO: Training gif
+<img src="resources/make-models.gif" height="500"/>
+
+This will product two .mlmodel products:
+```
+product/DigitClassifier.mlmodel
+product/TunedDigitClassifer.mlmodel
+```
+
+These models tests with accuracy:
+| Model                |      MNIST      |  Fonts |  Combined |
+|:---------------------|:------:|:------:|:------:|
+| DigitClassifier      | 98.73% | 81.39% | 92.02% |
+| TunedDigitClassifier | 98.11% | 97.10% | 98.74% |
+
+The two models seems to have similar performance on the MNIST dataset, with the basic model slightly outperforming the tuned model (0.62%). As expected, however, the tuned model drastically outperforms the basic model on font data by 15.71%.
 
 ## Comparing the Models
 Once trained, the models can be compared against a set of images generated from font and set aside for comparision.
@@ -79,15 +92,26 @@ make compare \
   product/TunedDigitClassifier.mlmodel
 ```
 
-TODO: Comparision output media
+<img src="resources/make-compare.gif" height="500"/>
+
+We get the following results.
+| Model                   |  Fonts |
+|:------------------------|:------:|
+| MNISTClassifier (Apple) | 91.70% |
+| DigitClassifier         | 78.10% |
+| TunedDigitClassifier    | 97.33% |
+
+These results are about what we expect. Interestingly, the Apple model does pretty well on the font dataset, clocking in at 91.7% accuracy. The tuned classifier reaches 97.33% accuracy, but we'll see if we can improve that in the next section.
 
 ## Gardening the fonts
 
-Great! We've created a model that outperforms Apple's stock MNISTClassifier on printed fonts. _However_ some of the fonts we downloaded may not actually be practical representations of digits. For instance, the xmaslight font:
+We've created a model that outperforms Apple's MNISTClassifier on printed fonts. _However_ some of the fonts we downloaded may not actually be practical representations of digits. For instance, the xmaslight font represents an '8' like this:
 
 <img src="resources/8_xmaslight.jpg" height=100/>
 
-To account for this, we can look for concensus between the three classifier models to find fonts all three consistently classify incorrectly.
+While this is a very fun and cute font, it's not a great representation of the digit 8 for most real-world scenarios, including the Sudoku Solver. It's best to exclude fonts like these because they may cause undesireable behavior from our classifier.
+
+To account for this, we can look for concensus between the three classifier models to find fonts all three consistently classify incorrectly. When such a font is found, we add it to the `dataset/ignore.txt` file so it won't be included in our generated font dataset.
 
 ```
 make garden-dataset \ 
@@ -96,11 +120,11 @@ make garden-dataset \
   product/TunedDigitClassifier.mlmodel
 ```
 
-// TODO: gardening gif
+<img src="resources/make-garden-dataset.gif" height="500"/>
 
-The gardening script will update the `dataset/ignored.txt` file with fonts that don't seem to be useful representations of printed fonts. 
+The gardening script found over 300 fonts in the 8,000+ supplied!
 
-After gardening, we need to regenerated the font dataset and retrain the models.
+After gardening, we need to regenerated the font dataset, retrain the models, and run the comparison again.
 
 ```
 make font-dataset
@@ -113,4 +137,11 @@ make compare \
   product/TunedDigitClassifier1.mlmodel
 ```
 
-TODO: updated comparision results
+<img src="resources/make-compare-gardened.gif" height="500"/>
+
+And voila! We have acheived X% accuracy on printed font digits!
+| Model                   |  Fonts |
+|:------------------------|:------:|
+| MNISTClassifier (Apple) | 95.03% |
+| DigitClassifier         | 86.08% |
+| TunedDigitClassifier    | 98.41% |
