@@ -5,5 +5,8 @@
 output/
 dataset/**
 fonts/
-
 product/
+
+# Jupyter
+.ipynb_checkpoints/
+__pycache__/
