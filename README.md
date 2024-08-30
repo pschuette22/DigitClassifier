@@ -1,38 +1,34 @@
 # DigitClassifier
-Use font files to augment the MNIST Dataset and to train a classifier better suited for printed fonts. This is meant to improve the accuracy of the [SudokuSolver](https://github.com/pschuette22/SudokuSolver) decoding task.
+Use font files to augment the MNIST Dataset to train a classifier tuned for printed fonts. This is meant to improve the accuracy of the [SudokuSolver](https://github.com/pschuette22/SudokuSolver) decoding task.
 
 <img src="resources/SudokuSolverDemo.gif" height="300"/>
 
-## Setup
-### Install Fonts
+## Install Fonts
+### Google Fonts
 Download a variety of fonts (the more the better!) from [Google Fonts](https://fonts.google.com/) or from the [Google Fonts Github Project](https://github.com/google/fonts) and add them to the `fonts/` folder.
 
-Additionally, installing fonts using [fnt](https://github.com/alexmyczko/fnt) will add more training data.
+### FNT
+Install fonts using [fnt](https://github.com/alexmyczko/fnt) command line tool.
 
-Download ~4200 font files (~1600 fonts), taking up 1.4G of disk space.
+Downloading all (~4200) font files takes ~1.4G of disk space.
 ```
 fnt update
 for a in $(fnt search |grep ^google- |sed s,google-,,); do fnt install $a; done
 ```
 
+## Create environment
+Download and install [miniconda](https://docs.anaconda.com/miniconda/) then activate the environment and install requirements.
 
-### Create environment
-Download and install [miniconda](https://docs.anaconda.com/miniconda/).
-
-Create the conda environment, activate, install the requirements, and start the notebook.
-
-```bash
+```
 conda create -n classifier-env python=3.11 pip
 conda activate classifier-env
 pip install -r requirements.txt
 ```
 
 ## Prepare the Dataset
-The first step is to prepare the dataset from a set of fonts. Do this by running the build dataset python script over the fonts added to the `fonts` directory
+The first step is to prepare the dataset from downloaded donts. The `make font-dataset` command invokes the `digitclassifier/dataset/builder.py` script and passes in the `fonts/` directory.
 
-The `digitclassifier/dataset/builder.py` script will convert all fonts found in the `[project}/fonts` directory as well as fnt downloaded fonts into 28x28 grayscale images of each digit. It will ignore fonts with a name partially matching patterns specified in the `dataset/ignored.txt` file.
-
-Font files containing a valid glyph and not matching rules found in the `dataset/ignored.txt` file will be added to the output dataset.
+Font files containing a valid glyph and excluding those matching patterns in `dataset/ignored.txt` will be added to the output dataset.
 
 ```
 make font-dataset
@@ -54,8 +50,7 @@ dataset/
     validate/
       ...
 ```
-If all Google and fnt fonts are used, this will produce 10 images of digits using approximately 8200 unique fonts. 
-
+If all Google and fnt fonts are used, this will produce 10 images of digits for approximately 8200 unique fonts.
 
 ## Train the Models
 Once the dataset is created, train the models using the `make models` command. This command will download the MNIST dataset and train two models. One model will only use the MNIST dataset and another will augment it with the font file digits created in the previous step. Both will print their efficacy against the combined font dataset.
@@ -66,22 +61,22 @@ make models
 
 <img src="resources/make-models.gif" height="500"/>
 
-This will product two .mlmodel products:
+Produced:
 ```
 product/DigitClassifier.mlmodel
 product/TunedDigitClassifer.mlmodel
 ```
 
-These models tests with accuracy:
+With test accuracy:
 | Model                |      MNIST      |  Fonts |  Combined |
 |:---------------------|:------:|:------:|:------:|
 | DigitClassifier      | 98.73% | 81.39% | 92.02% |
 | TunedDigitClassifier | 98.11% | 97.10% | 98.74% |
 
-The two models seems to have similar performance on the MNIST dataset, with the basic model slightly outperforming the tuned model (0.62%). As expected, however, the tuned model drastically outperforms the basic model on font data by 15.71%.
+The two models seems to have similar performance on the MNIST dataset, with the basic model outperforming the tuned model by 0.62%. However, the tuned model drastically outperforms the basic model on font data by 15.71%.
 
 ## Comparing the Models
-Once trained, the models can be compared against a set of images generated from font and set aside for comparision.
+Once trained, the models can be compared against a subset of the images created earlier which were set aside for verification.
 
 The project comes with the MNIST Classifier found in [Apple's Model Garden](https://developer.apple.com/machine-learning/models/).
 
@@ -139,7 +134,7 @@ make compare \
 
 <img src="resources/make-compare-gardened.gif" height="500"/>
 
-And voila! We have acheived X% accuracy on printed font digits!
+And voila! We have acheived 98.41% accuracy on printed font digits!
 | Model                   |  Fonts |
 |:------------------------|:------:|
 | MNISTClassifier (Apple) | 95.03% |
